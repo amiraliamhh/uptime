@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// For now, we'll keep the schema minimal since we only need a health endpoint
+// You can add models here as the project grows
+
+// User model for authentication
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String    @unique
+  password      String?   // null for OAuth-only users
+  name          String?
+  avatar        String?
+  provider      String    @default("local") // "local" or "google"
+  googleId      String?   @unique
+  isVerified    Boolean   @default(false)
+  resetToken    String?
+  resetExpires  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}

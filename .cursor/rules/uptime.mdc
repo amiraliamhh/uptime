@@ -1,0 +1,9 @@
+---
+description: General Rules
+alwaysApply: true
+---
+
+- You might be asked to work on a specific project, which is basically a directory inside the the whole project directory (e.g. "client", "backend").
+- All the projects are already running. Do NOT try to run the projects.
+- Consult env.example files in each project to get an understanding of the available env variables. If you had to change the env.example file, do NOT add any comments to the file, just add the variables.
+- Do NOT generate a file documenting the changes unless specifically asked.

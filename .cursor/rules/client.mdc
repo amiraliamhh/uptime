@@ -1,0 +1,7 @@
+---
+description: Client Rules
+globs: ['client/**']
+alwaysApply: true
+---
+
+- The project is already running on port :6051. Do NOT try to run the project.
