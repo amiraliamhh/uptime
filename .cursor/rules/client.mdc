@@ -6,3 +6,4 @@ alwaysApply: true
 
 - The project is already running on port :6051. Do NOT try to run the project.
 - i18n.nuxtjs.org package is used for i18n. Consult the online documentation if needed.
+- The API docs can be accessed using this url: http://localhost:6052/api-docs/swagger.json. Always use curl command from this device to fetch the docs instead of doing a "searching web"

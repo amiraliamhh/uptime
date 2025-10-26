@@ -43,7 +43,7 @@
   "auth": {
     "login": {
       "title": "Bienvenido de Nuevo",
-      "subtitle": "Inicia sesión en tu cuenta para continuar",
+      "subtitle": "Inicia sesión en tu cuenta para continuar monitoreando tus servicios",
       "email": "Correo electrónico",
       "password": "Contraseña",
       "remember": "Recuérdame",
@@ -53,11 +53,15 @@
       "signup_link": "Regístrate",
       "or": "O iniciar sesión con correo",
       "google": "Iniciar sesión con Google",
-      "github": "Iniciar sesión con GitHub"
+      "github": "Iniciar sesión con GitHub",
+      "benefit1": "Monitoreo en tiempo real de todos tus servicios",
+      "benefit2": "Alertas instantáneas cuando se detecta una caída",
+      "benefit3": "Análisis detallados y métricas de rendimiento",
+      "benefit4": "Fácil integración con tus herramientas existentes"
     },
     "signup": {
       "title": "Crea Tu Cuenta",
-      "subtitle": "Comienza a monitorear tus servicios hoy",
+      "subtitle": "Únete a miles de usuarios que monitorean sus servicios con confianza",
       "name": "Nombre completo",
       "email": "Correo electrónico",
       "password": "Contraseña",
@@ -71,7 +75,11 @@
       "login_link": "Iniciar sesión",
       "or": "O registrarse con correo",
       "google": "Registrarse con Google",
-      "github": "Registrarse con GitHub"
+      "github": "Registrarse con GitHub",
+      "benefit1": "Monitorea servicios ilimitados 24/7",
+      "benefit2": "Recibe notificaciones instantáneas por correo, SMS o webhook",
+      "benefit3": "Accede a informes detallados y análisis de disponibilidad",
+      "benefit4": "Configura intervalos de monitoreo personalizados"
     },
     "forgot": {
       "title": "¿Olvidaste tu Contraseña?",

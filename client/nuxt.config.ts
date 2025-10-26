@@ -56,5 +56,10 @@ export default defineNuxtConfig({
         { rel: 'manifest', href: '/site.webmanifest' }
       ]
     }
+  },
+  runtimeConfig: {
+    public: {
+      apiBase: process.env.API_BASE_URL || 'http://localhost:6052'
+    }
   }
 })

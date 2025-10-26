@@ -43,7 +43,7 @@
   "auth": {
     "login": {
       "title": "Willkommen Zurück",
-      "subtitle": "Melden Sie sich bei Ihrem Konto an, um fortzufahren",
+      "subtitle": "Melden Sie sich bei Ihrem Konto an, um Ihre Dienste weiter zu überwachen",
       "email": "E-Mail-Adresse",
       "password": "Passwort",
       "remember": "Angemeldet bleiben",
@@ -53,11 +53,15 @@
       "signup_link": "Registrieren",
       "or": "Oder mit E-Mail anmelden",
       "google": "Mit Google anmelden",
-      "github": "Mit GitHub anmelden"
+      "github": "Mit GitHub anmelden",
+      "benefit1": "Echtzeit-Überwachung all Ihrer Dienste",
+      "benefit2": "Sofortige Benachrichtigungen bei erkannten Ausfällen",
+      "benefit3": "Detaillierte Analysen und Leistungsmetriken",
+      "benefit4": "Einfache Integration mit Ihren vorhandenen Tools"
     },
     "signup": {
       "title": "Konto Erstellen",
-      "subtitle": "Beginnen Sie noch heute mit der Überwachung Ihrer Dienste",
+      "subtitle": "Schließen Sie sich Tausenden von Benutzern an, die ihre Dienste mit Zuversicht überwachen",
       "name": "Vollständiger Name",
       "email": "E-Mail-Adresse",
       "password": "Passwort",
@@ -71,7 +75,11 @@
       "login_link": "Anmelden",
       "or": "Oder mit E-Mail registrieren",
       "google": "Mit Google registrieren",
-      "github": "Mit GitHub registrieren"
+      "github": "Mit GitHub registrieren",
+      "benefit1": "Überwachen Sie unbegrenzte Dienste 24/7",
+      "benefit2": "Erhalten Sie sofortige Benachrichtigungen per E-Mail, SMS oder Webhook",
+      "benefit3": "Zugriff auf detaillierte Verfügbarkeitsberichte und Analysen",
+      "benefit4": "Richten Sie benutzerdefinierte Überwachungsintervalle ein"
     },
     "forgot": {
       "title": "Passwort Vergessen?",

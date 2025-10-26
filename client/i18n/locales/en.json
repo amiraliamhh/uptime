@@ -43,7 +43,7 @@
   "auth": {
     "login": {
       "title": "Welcome Back",
-      "subtitle": "Sign in to your account to continue",
+      "subtitle": "Sign in to your account to continue monitoring your services",
       "email": "Email address",
       "password": "Password",
       "remember": "Remember me",
@@ -53,11 +53,15 @@
       "signup_link": "Sign up",
       "or": "Or sign in with email",
       "google": "Sign in with Google",
-      "github": "Sign in with GitHub"
+      "github": "Sign in with GitHub",
+      "benefit1": "Real-time monitoring of all your services",
+      "benefit2": "Instant alerts when downtime is detected",
+      "benefit3": "Detailed analytics and performance metrics",
+      "benefit4": "Easy integration with your existing tools"
     },
     "signup": {
       "title": "Create Your Account",
-      "subtitle": "Start monitoring your services today",
+      "subtitle": "Join thousands of users monitoring their services with confidence",
       "name": "Full name",
       "email": "Email address",
       "password": "Password",
@@ -71,7 +75,11 @@
       "login_link": "Sign in",
       "or": "Or sign up with email",
       "google": "Sign up with Google",
-      "github": "Sign up with GitHub"
+      "github": "Sign up with GitHub",
+      "benefit1": "Monitor unlimited services 24/7",
+      "benefit2": "Get instant notifications via email, SMS, or webhook",
+      "benefit3": "Access detailed uptime reports and analytics",
+      "benefit4": "Set up custom monitoring intervals"
     },
     "forgot": {
       "title": "Forgot Password?",

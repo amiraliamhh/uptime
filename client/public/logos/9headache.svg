@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 100">
   <rect x="25" y="22" width="64" height="64" rx="12" fill="black"/>
-  <text x="58" y="70" font-family="Arial, sans-serif" font-size="50" font-weight="bold" fill="white" text-anchor="middle">9</text>
+  <text x="58" y="72" font-family="Arial, sans-serif" font-size="50" font-weight="bold" fill="white" text-anchor="middle">9</text>
   <text x="96" y="70" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="black">headache</text>
 </svg>
