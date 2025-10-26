@@ -45,6 +45,7 @@ model Organization {
   // Relations
   members     OrganizationMember[]
   monitors    Monitor[]
+  logs        Log[]
 
   @@map("organizations")
 }
@@ -87,6 +88,45 @@ model Monitor {
 
   // Relations
   organization          Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  logs                  Log[]
 
   @@map("monitors")
+}
+
+// Log model for storing monitor check results
+model Log {
+  id                    String                    @id @default(auto()) @map("_id") @db.ObjectId
+  monitorId             String                    @db.ObjectId
+  organizationId        String                    @db.ObjectId
+  status                String                    // "success", "failure", "timeout", "error"
+  responseTime          Int                       // Total response time in milliseconds
+  sslHandshakeTime      Int?                      // SSL handshake time in milliseconds
+  dnsLookupTime         Int?                      // DNS lookup time in milliseconds
+  tcpConnectTime        Int?                      // TCP connection time in milliseconds
+  httpStatus            Int?                      // HTTP status code
+  httpVersion           String?                   // HTTP version (e.g., "1.1", "2.0")
+  responseSize          Int?                      // Response body size in bytes
+  redirectCount         Int                       @default(0) // Number of redirects followed
+  errorMessage          String?                   // Error message if failed
+  errorCode             String?                   // Error code if failed
+  requestUrl            String                    // Final URL after redirects
+  requestMethod         String                    // HTTP method used
+  requestHeaders        Json?                     // Request headers sent
+  responseHeaders       Json?                     // Response headers received
+  responseBody          String?                   // Response body (truncated if too large)
+  responseBodyTruncated Boolean                   @default(false) // Whether body was truncated
+  userAgent             String?                   // User agent used
+  ipAddress             String?                   // IP address of the target
+  checkedAt             DateTime                  @default(now()) // When the check was performed
+  createdAt             DateTime                  @default(now()) // Log creation timestamp
+
+  // Relations
+  monitor               Monitor                   @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+  organization          Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Indexes for efficient querying
+  @@index([monitorId, checkedAt])
+  @@index([organizationId, checkedAt])
+  @@index([status, checkedAt])
+  @@map("logs")
 }
