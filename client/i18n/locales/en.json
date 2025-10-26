@@ -51,7 +51,9 @@
       "button": "Sign In",
       "no_account": "Don't have an account?",
       "signup_link": "Sign up",
-      "or": "Or continue with"
+      "or": "Or sign in with email",
+      "google": "Sign in with Google",
+      "github": "Sign in with GitHub"
     },
     "signup": {
       "title": "Create Your Account",
@@ -67,7 +69,9 @@
       "button": "Create Account",
       "have_account": "Already have an account?",
       "login_link": "Sign in",
-      "or": "Or sign up with"
+      "or": "Or sign up with email",
+      "google": "Sign up with Google",
+      "github": "Sign up with GitHub"
     },
     "forgot": {
       "title": "Forgot Password?",

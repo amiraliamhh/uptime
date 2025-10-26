@@ -51,7 +51,9 @@
       "button": "Iniciar Sesión",
       "no_account": "¿No tienes una cuenta?",
       "signup_link": "Regístrate",
-      "or": "O continuar con"
+      "or": "O iniciar sesión con correo",
+      "google": "Iniciar sesión con Google",
+      "github": "Iniciar sesión con GitHub"
     },
     "signup": {
       "title": "Crea Tu Cuenta",
@@ -67,7 +69,9 @@
       "button": "Crear Cuenta",
       "have_account": "¿Ya tienes una cuenta?",
       "login_link": "Iniciar sesión",
-      "or": "O regístrate con"
+      "or": "O registrarse con correo",
+      "google": "Registrarse con Google",
+      "github": "Registrarse con GitHub"
     },
     "forgot": {
       "title": "¿Olvidaste tu Contraseña?",

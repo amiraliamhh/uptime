@@ -51,7 +51,9 @@
       "button": "Se Connecter",
       "no_account": "Vous n'avez pas de compte?",
       "signup_link": "S'inscrire",
-      "or": "Ou continuer avec"
+      "or": "Ou se connecter par e-mail",
+      "google": "Se connecter avec Google",
+      "github": "Se connecter avec GitHub"
     },
     "signup": {
       "title": "Créez Votre Compte",
@@ -67,7 +69,9 @@
       "button": "Créer un Compte",
       "have_account": "Vous avez déjà un compte?",
       "login_link": "Se connecter",
-      "or": "Ou s'inscrire avec"
+      "or": "Ou s'inscrire par e-mail",
+      "google": "S'inscrire avec Google",
+      "github": "S'inscrire avec GitHub"
     },
     "forgot": {
       "title": "Mot de Passe Oublié?",
