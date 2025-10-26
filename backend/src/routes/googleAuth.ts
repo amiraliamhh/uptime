@@ -4,11 +4,30 @@ import { generateToken } from '../utils/auth';
 
 const router = express.Router();
 
-// Google OAuth routes
+/**
+ * @swagger
+ * /api/v1/auth/google:
+ *   get:
+ *     summary: Initiate Google OAuth authentication
+ *     tags: [Authentication]
+ *     responses:
+ *       302:
+ *         description: Redirects to Google OAuth consent screen
+ */
 router.get('/google', passport.authenticate('google', {
   scope: ['profile', 'email']
 }));
 
+/**
+ * @swagger
+ * /api/v1/auth/google/callback:
+ *   get:
+ *     summary: Google OAuth callback
+ *     tags: [Authentication]
+ *     responses:
+ *       302:
+ *         description: Redirects to frontend with JWT token or error
+ */
 router.get('/google/callback', 
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {

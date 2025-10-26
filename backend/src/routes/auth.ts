@@ -7,7 +7,38 @@ import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Sign up endpoint
+/**
+ * @swagger
+ * /api/v1/auth/signup:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/SignupRequest'
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       400:
+ *         description: Bad request - validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post('/signup', async (req, res) => {
   try {
     const { email, password, name } = req.body;
@@ -68,7 +99,44 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// Login endpoint
+/**
+ * @swagger
+ * /api/v1/auth/login:
+ *   post:
+ *     summary: Authenticate user and get access token
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       400:
+ *         description: Bad request - validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -117,7 +185,42 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Forgot password endpoint
+/**
+ * @swagger
+ * /api/v1/auth/forgot-password:
+ *   post:
+ *     summary: Request password reset
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ForgotPasswordRequest'
+ *     responses:
+ *       200:
+ *         description: Password reset email sent (if email exists)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "If the email exists, a reset link has been sent"
+ *       400:
+ *         description: Bad request - validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -158,7 +261,42 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
-// Reset password endpoint
+/**
+ * @swagger
+ * /api/v1/auth/reset-password:
+ *   post:
+ *     summary: Reset password with token
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ResetPasswordRequest'
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Password reset successful"
+ *       400:
+ *         description: Bad request - validation error or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post('/reset-password', async (req, res) => {
   try {
     const { token, password } = req.body;
@@ -205,7 +343,40 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
-// Profile endpoint
+/**
+ * @swagger
+ * /api/v1/auth/profile:
+ *   get:
+ *     summary: Get user profile
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ProfileResponse'
+ *       401:
+ *         description: Unauthorized - invalid or missing token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.get('/profile', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const user = await prisma.user.findUnique({
@@ -233,7 +404,46 @@ router.get('/profile', authenticateToken, async (req: AuthenticatedRequest, res)
   }
 });
 
-// Update profile endpoint
+/**
+ * @swagger
+ * /api/v1/auth/profile:
+ *   put:
+ *     summary: Update user profile
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateProfileRequest'
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Profile updated successfully"
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized - invalid or missing token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.put('/profile', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const { name, avatar } = req.body;

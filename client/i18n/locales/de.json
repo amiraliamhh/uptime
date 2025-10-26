@@ -1,0 +1,83 @@
+{
+  "nav": {
+    "brand": "Uptime Monitor",
+    "login": "Anmelden",
+    "signup": "Registrieren"
+  },
+  "hero": {
+    "title": "Überwachen Sie Ihre Dienste",
+    "subtitle": "24/7 Zuverlässigkeit",
+    "description": "Behalten Sie Ihre Websites und APIs mit Echtzeitüberwachung im Auge. Erhalten Sie sofortige Benachrichtigungen, wenn etwas schief geht.",
+    "cta_primary": "Kostenlos Starten",
+    "cta_secondary": "Mehr Erfahren"
+  },
+  "features": {
+    "title": "Alles, Was Sie Brauchen, Um Online zu Bleiben",
+    "realtime": {
+      "title": "Echtzeit-Überwachung",
+      "description": "Überwachen Sie Ihre Dienste jede Minute mit sofortigen Benachrichtigungen bei erkannten Ausfällen."
+    },
+    "alerts": {
+      "title": "Sofortige Benachrichtigungen",
+      "description": "Werden Sie per E-Mail, SMS oder Webhook benachrichtigt, sobald Ihr Dienst ausfällt."
+    },
+    "analytics": {
+      "title": "Detaillierte Analysen",
+      "description": "Verfolgen Sie Verfügbarkeitshistorie, Antwortzeiten und Leistungsmetriken im Zeitverlauf."
+    }
+  },
+  "cta": {
+    "title": "Bereit Anzufangen?",
+    "description": "Beginnen Sie noch heute mit der Überwachung Ihrer Dienste. Keine Kreditkarte erforderlich.",
+    "button": "Erstellen Sie Ihr Kostenloses Konto"
+  },
+  "footer": {
+    "copyright": "Uptime Monitor. Alle Rechte vorbehalten.",
+    "about": "Über Uns",
+    "contact": "Kontakt",
+    "privacy": "Datenschutzrichtlinie",
+    "terms": "Nutzungsbedingungen",
+    "cookies": "Cookie-Richtlinie",
+    "language": "Sprache"
+  },
+  "auth": {
+    "login": {
+      "title": "Willkommen Zurück",
+      "subtitle": "Melden Sie sich bei Ihrem Konto an, um fortzufahren",
+      "email": "E-Mail-Adresse",
+      "password": "Passwort",
+      "remember": "Angemeldet bleiben",
+      "forgot": "Passwort vergessen?",
+      "button": "Anmelden",
+      "no_account": "Noch kein Konto?",
+      "signup_link": "Registrieren",
+      "or": "Oder fortfahren mit"
+    },
+    "signup": {
+      "title": "Konto Erstellen",
+      "subtitle": "Beginnen Sie noch heute mit der Überwachung Ihrer Dienste",
+      "name": "Vollständiger Name",
+      "email": "E-Mail-Adresse",
+      "password": "Passwort",
+      "confirm_password": "Passwort bestätigen",
+      "agree": "Ich stimme den",
+      "terms": "Nutzungsbedingungen",
+      "and": "und der",
+      "privacy": "Datenschutzrichtlinie",
+      "button": "Konto Erstellen",
+      "have_account": "Haben Sie bereits ein Konto?",
+      "login_link": "Anmelden",
+      "or": "Oder registrieren mit"
+    },
+    "forgot": {
+      "title": "Passwort Vergessen?",
+      "subtitle": "Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts",
+      "email": "E-Mail-Adresse",
+      "button": "Link Senden",
+      "back_to": "Zurück zu",
+      "login": "Anmelden",
+      "success": "Wenn ein Konto mit dieser E-Mail existiert, erhalten Sie in Kürze einen Link zum Zurücksetzen des Passworts."
+    }
+  }
+}
+

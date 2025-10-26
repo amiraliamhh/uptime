@@ -1,0 +1,83 @@
+{
+  "nav": {
+    "brand": "Moniteur de Disponibilité",
+    "login": "Connexion",
+    "signup": "S'inscrire"
+  },
+  "hero": {
+    "title": "Surveillez Vos Services",
+    "subtitle": "Fiabilité 24/7",
+    "description": "Suivez vos sites web et API avec une surveillance en temps réel. Recevez des alertes instantanées en cas de problème.",
+    "cta_primary": "Commencer Gratuitement",
+    "cta_secondary": "En Savoir Plus"
+  },
+  "features": {
+    "title": "Tout ce dont Vous Avez Besoin pour Rester en Ligne",
+    "realtime": {
+      "title": "Surveillance en Temps Réel",
+      "description": "Surveillez vos services chaque minute avec des notifications instantanées en cas de panne détectée."
+    },
+    "alerts": {
+      "title": "Alertes Instantanées",
+      "description": "Soyez notifié par email, SMS ou webhook dès que votre service tombe en panne."
+    },
+    "analytics": {
+      "title": "Analyses Détaillées",
+      "description": "Suivez l'historique de disponibilité, les temps de réponse et les métriques de performance au fil du temps."
+    }
+  },
+  "cta": {
+    "title": "Prêt à Commencer?",
+    "description": "Commencez à surveiller vos services aujourd'hui. Aucune carte de crédit requise.",
+    "button": "Créez Votre Compte Gratuit"
+  },
+  "footer": {
+    "copyright": "Moniteur de Disponibilité. Tous droits réservés.",
+    "about": "À Propos",
+    "contact": "Contact",
+    "privacy": "Politique de Confidentialité",
+    "terms": "Conditions d'Utilisation",
+    "cookies": "Politique des Cookies",
+    "language": "Langue"
+  },
+  "auth": {
+    "login": {
+      "title": "Bon Retour",
+      "subtitle": "Connectez-vous à votre compte pour continuer",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "remember": "Se souvenir de moi",
+      "forgot": "Mot de passe oublié?",
+      "button": "Se Connecter",
+      "no_account": "Vous n'avez pas de compte?",
+      "signup_link": "S'inscrire",
+      "or": "Ou continuer avec"
+    },
+    "signup": {
+      "title": "Créez Votre Compte",
+      "subtitle": "Commencez à surveiller vos services aujourd'hui",
+      "name": "Nom complet",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "confirm_password": "Confirmer le mot de passe",
+      "agree": "J'accepte les",
+      "terms": "Conditions d'Utilisation",
+      "and": "et la",
+      "privacy": "Politique de Confidentialité",
+      "button": "Créer un Compte",
+      "have_account": "Vous avez déjà un compte?",
+      "login_link": "Se connecter",
+      "or": "Ou s'inscrire avec"
+    },
+    "forgot": {
+      "title": "Mot de Passe Oublié?",
+      "subtitle": "Entrez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe",
+      "email": "Adresse e-mail",
+      "button": "Envoyer le Lien",
+      "back_to": "Retour à",
+      "login": "Se connecter",
+      "success": "Si un compte existe avec cet e-mail, vous recevrez un lien de réinitialisation sous peu."
+    }
+  }
+}
+

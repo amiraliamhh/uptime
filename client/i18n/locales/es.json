@@ -1,0 +1,83 @@
+{
+  "nav": {
+    "brand": "Monitor de Tiempo Activo",
+    "login": "Iniciar Sesión",
+    "signup": "Registrarse"
+  },
+  "hero": {
+    "title": "Monitorea Tus Servicios",
+    "subtitle": "Confiabilidad 24/7",
+    "description": "Mantén un seguimiento de tus sitios web y APIs con monitoreo en tiempo real. Recibe alertas instantáneas cuando algo falle.",
+    "cta_primary": "Comenzar Gratis",
+    "cta_secondary": "Saber Más"
+  },
+  "features": {
+    "title": "Todo lo que Necesitas para Mantenerte en Línea",
+    "realtime": {
+      "title": "Monitoreo en Tiempo Real",
+      "description": "Monitorea tus servicios cada minuto con notificaciones instantáneas cuando se detecte una caída."
+    },
+    "alerts": {
+      "title": "Alertas Instantáneas",
+      "description": "Recibe notificaciones por correo, SMS o webhook en el momento que tu servicio caiga."
+    },
+    "analytics": {
+      "title": "Análisis Detallados",
+      "description": "Rastrea el historial de tiempo activo, tiempos de respuesta y métricas de rendimiento a lo largo del tiempo."
+    }
+  },
+  "cta": {
+    "title": "¿Listo para Comenzar?",
+    "description": "Comienza a monitorear tus servicios hoy. No se requiere tarjeta de crédito.",
+    "button": "Crea tu Cuenta Gratuita"
+  },
+  "footer": {
+    "copyright": "Monitor de Tiempo Activo. Todos los derechos reservados.",
+    "about": "Acerca de",
+    "contact": "Contacto",
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Servicio",
+    "cookies": "Política de Cookies",
+    "language": "Idioma"
+  },
+  "auth": {
+    "login": {
+      "title": "Bienvenido de Nuevo",
+      "subtitle": "Inicia sesión en tu cuenta para continuar",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "remember": "Recuérdame",
+      "forgot": "¿Olvidaste tu contraseña?",
+      "button": "Iniciar Sesión",
+      "no_account": "¿No tienes una cuenta?",
+      "signup_link": "Regístrate",
+      "or": "O continuar con"
+    },
+    "signup": {
+      "title": "Crea Tu Cuenta",
+      "subtitle": "Comienza a monitorear tus servicios hoy",
+      "name": "Nombre completo",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "confirm_password": "Confirmar contraseña",
+      "agree": "Acepto los",
+      "terms": "Términos de Servicio",
+      "and": "y la",
+      "privacy": "Política de Privacidad",
+      "button": "Crear Cuenta",
+      "have_account": "¿Ya tienes una cuenta?",
+      "login_link": "Iniciar sesión",
+      "or": "O regístrate con"
+    },
+    "forgot": {
+      "title": "¿Olvidaste tu Contraseña?",
+      "subtitle": "Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña",
+      "email": "Correo electrónico",
+      "button": "Enviar Enlace",
+      "back_to": "Volver a",
+      "login": "Iniciar sesión",
+      "success": "Si existe una cuenta con ese correo, recibirás un enlace para restablecer tu contraseña en breve."
+    }
+  }
+}
+

@@ -5,3 +5,4 @@ alwaysApply: true
 ---
 
 - The project is already running on port :6051. Do NOT try to run the project.
+- i18n.nuxtjs.org package is used for i18n. Consult the online documentation if needed.

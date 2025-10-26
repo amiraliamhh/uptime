@@ -1,0 +1,83 @@
+{
+  "nav": {
+    "brand": "Uptime Monitor",
+    "login": "Login",
+    "signup": "Sign Up"
+  },
+  "hero": {
+    "title": "Monitor Your Services",
+    "subtitle": "24/7 Reliability",
+    "description": "Keep track of your websites and APIs with real-time monitoring. Get instant alerts when something goes wrong.",
+    "cta_primary": "Get Started Free",
+    "cta_secondary": "Learn More"
+  },
+  "features": {
+    "title": "Everything You Need to Stay Online",
+    "realtime": {
+      "title": "Real-Time Monitoring",
+      "description": "Monitor your services every minute with instant notifications when downtime is detected."
+    },
+    "alerts": {
+      "title": "Instant Alerts",
+      "description": "Get notified via email, SMS, or webhook the moment your service goes down."
+    },
+    "analytics": {
+      "title": "Detailed Analytics",
+      "description": "Track uptime history, response times, and performance metrics over time."
+    }
+  },
+  "cta": {
+    "title": "Ready to Get Started?",
+    "description": "Start monitoring your services today. No credit card required.",
+    "button": "Create Your Free Account"
+  },
+  "footer": {
+    "copyright": "Uptime Monitor. All rights reserved.",
+    "about": "About",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "cookies": "Cookie Policy",
+    "language": "Language"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to your account to continue",
+      "email": "Email address",
+      "password": "Password",
+      "remember": "Remember me",
+      "forgot": "Forgot password?",
+      "button": "Sign In",
+      "no_account": "Don't have an account?",
+      "signup_link": "Sign up",
+      "or": "Or continue with"
+    },
+    "signup": {
+      "title": "Create Your Account",
+      "subtitle": "Start monitoring your services today",
+      "name": "Full name",
+      "email": "Email address",
+      "password": "Password",
+      "confirm_password": "Confirm password",
+      "agree": "I agree to the",
+      "terms": "Terms of Service",
+      "and": "and",
+      "privacy": "Privacy Policy",
+      "button": "Create Account",
+      "have_account": "Already have an account?",
+      "login_link": "Sign in",
+      "or": "Or sign up with"
+    },
+    "forgot": {
+      "title": "Forgot Password?",
+      "subtitle": "Enter your email address and we'll send you a link to reset your password",
+      "email": "Email address",
+      "button": "Send Reset Link",
+      "back_to": "Back to",
+      "login": "Sign in",
+      "success": "If an account exists with that email, you will receive a password reset link shortly."
+    }
+  }
+}
+

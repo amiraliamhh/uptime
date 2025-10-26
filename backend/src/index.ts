@@ -3,9 +3,11 @@ import cors from 'cors';
 import helmet from 'helmet';
 import session from 'express-session';
 import passport from 'passport';
+import swaggerUi from 'swagger-ui-express';
 import { PrismaClient } from '@prisma/client';
 import authRoutes from './routes/auth';
 import googleAuthRoutes from './routes/googleAuth';
+import { swaggerSpec } from './config/swagger';
 import './config/passport';
 
 const app = express();
@@ -35,11 +37,37 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Uptime Backend API Documentation'
+}));
+
 // Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/auth', googleAuthRoutes);
 
-// Health endpoint
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check endpoint
+ *     tags: [System]
+ *     responses:
+ *       200:
+ *         description: Service is healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HealthResponse'
+ *       503:
+ *         description: Service is unhealthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HealthResponse'
+ */
 app.get('/health', async (req, res) => {
   try {
     // Test database connection
