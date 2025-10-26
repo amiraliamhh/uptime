@@ -44,7 +44,7 @@ model Organization {
 
   // Relations
   members     OrganizationMember[]
-  monitorings Monitoring[]
+  monitors    Monitor[]
 
   @@map("organizations")
 }
@@ -65,8 +65,8 @@ model OrganizationMember {
   @@map("organization_members")
 }
 
-// Monitoring model for uptime checks
-model Monitoring {
+// Monitor model for uptime checks
+model Monitor {
   id                    String                    @id @default(auto()) @map("_id") @db.ObjectId
   organizationId        String                    @db.ObjectId
   type                  String                    // "https", "tcp"
@@ -88,5 +88,5 @@ model Monitoring {
   // Relations
   organization          Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@map("monitorings")
+  @@map("monitors")
 }

@@ -7,7 +7,7 @@ This document describes all database models and their API handling requirements 
 - [User Model](#user-model)
 - [Organization Model](#organization-model)
 - [OrganizationMember Model](#organizationmember-model)
-- [Monitoring Model](#monitoring-model)
+- [Monitor Model](#monitor-model)
 - [API Validation Rules](#api-validation-rules)
 - [Data Relationships](#data-relationships)
 
@@ -90,29 +90,29 @@ The OrganizationMember model manages the many-to-many relationship between users
 
 ---
 
-## Monitoring Model
+## Monitor Model
 
-The Monitoring model defines uptime check configurations for websites and services.
+The Monitor model defines uptime check configurations for websites and services.
 
 ### Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `id` | String (ObjectId) | Yes | Unique monitoring identifier |
+| `id` | String (ObjectId) | Yes | Unique monitor identifier |
 | `organizationId` | String (ObjectId) | Yes | Reference to organization |
-| `type` | String | Yes | Monitoring type ("https" or "tcp") |
-| `name` | String | Yes | Monitoring name |
+| `type` | String | Yes | Monitor type ("https" or "tcp") |
+| `name` | String | Yes | Monitor name |
 | `failThreshold` | Integer | Yes | Failures before alert (default: 3) |
 | `checkInterval` | Integer | Yes | Check interval in seconds (default: 300) |
 | `checkTimeout` | Integer | Yes | Check timeout in seconds (default: 30) |
-| `url` | String | Yes | Target URL for monitoring |
+| `url` | String | Yes | Target URL for monitor |
 | `httpMethod` | String | Yes | HTTP method (default: "HEAD") |
 | `requestHeaders` | JSON | Yes | Request headers array |
 | `followRedirects` | Boolean | Yes | Follow redirects (default: true) |
 | `expectedStatusCodes` | String[] | Yes | Expected status codes array |
 | `expectedResponseHeaders` | JSON | Yes | Expected response headers array |
 | `contacts` | String[] | Yes | User IDs to notify on failures |
-| `isActive` | Boolean | Yes | Monitoring active status (default: true) |
+| `isActive` | Boolean | Yes | Monitor active status (default: true) |
 | `createdAt` | DateTime | Yes | Creation timestamp |
 | `updatedAt` | DateTime | Yes | Last update timestamp |
 
@@ -204,9 +204,9 @@ The Monitoring model defines uptime check configurations for websites and servic
 4. **Error Handling**: Return appropriate HTTP status codes and error messages
 5. **Rate Limiting**: Implement rate limiting for sensitive endpoints
 
-### Monitoring-Specific Rules
+### Monitor-Specific Rules
 
-1. **Organization Access**: Users can only create/modify monitorings in their organizations
+1. **Organization Access**: Users can only create/modify monitors in their organizations
 2. **Contact Validation**: All contacts must be valid users and organization members
 3. **URL Validation**: URLs must be reachable and valid for the specified type
 4. **Interval Constraints**: Check timeout must be less than check interval
@@ -215,7 +215,7 @@ The Monitoring model defines uptime check configurations for websites and servic
 ### Data Integrity Rules
 
 1. **Cascade Deletes**: 
-   - Deleting organization removes all monitorings and members
+   - Deleting organization removes all monitors and members
    - Deleting user removes all memberships
 2. **Unique Constraints**:
    - Email addresses must be unique
@@ -230,28 +230,28 @@ The Monitoring model defines uptime check configurations for websites and servic
 ## Data Relationships
 
 ```
-User (1) ←→ (N) OrganizationMember (N) ←→ (1) Organization (1) ←→ (N) Monitoring
+User (1) ←→ (N) OrganizationMember (N) ←→ (1) Organization (1) ←→ (N) Monitor
 ```
 
 ### Relationship Details
 
 - **User ↔ OrganizationMember**: One-to-many (user can be in multiple organizations)
 - **Organization ↔ OrganizationMember**: One-to-many (organization can have multiple members)
-- **Organization ↔ Monitoring**: One-to-many (organization can have multiple monitorings)
-- **User ↔ Monitoring**: Many-to-many (through organization membership and contacts)
+- **Organization ↔ Monitor**: One-to-many (organization can have multiple monitors)
+- **User ↔ Monitor**: Many-to-many (through organization membership and contacts)
 
 ### Access Patterns
 
-1. **User Access**: Users can only access monitorings from organizations they belong to
-2. **Admin Access**: Organization admins can manage all monitorings in their organization
-3. **Contact Access**: Users listed as contacts receive notifications for monitoring failures
+1. **User Access**: Users can only access monitors from organizations they belong to
+2. **Admin Access**: Organization admins can manage all monitors in their organization
+3. **Contact Access**: Users listed as contacts receive notifications for monitor failures
 4. **Public Access**: Health check endpoint is publicly accessible
 
 ---
 
 ## Example API Payloads
 
-### Create Monitoring
+### Create Monitor
 
 ```json
 {
@@ -275,7 +275,7 @@ User (1) ←→ (N) OrganizationMember (N) ←→ (1) Organization (1) ←→ (N
 }
 ```
 
-### Update Monitoring
+### Update Monitor
 
 ```json
 {
