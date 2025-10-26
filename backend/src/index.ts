@@ -7,6 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import { PrismaClient } from '@prisma/client';
 import authRoutes from './routes/auth';
 import googleAuthRoutes from './routes/googleAuth';
+import organizationRoutes from './routes/organizations';
 import { swaggerSpec } from './config/swagger';
 import './config/passport';
 
@@ -52,6 +53,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 // Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/auth', googleAuthRoutes);
+app.use('/api/v1/organizations', organizationRoutes);
 
 /**
  * @swagger

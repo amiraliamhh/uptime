@@ -4,7 +4,7 @@ import { hashPassword, comparePassword, generateToken, generateResetToken } from
 import { sendPasswordResetEmail, sendVerificationEmail } from '../utils/email';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 const prisma = new PrismaClient();
 
 /**
@@ -64,33 +64,60 @@ router.post('/signup', async (req, res) => {
     // Hash password
     const hashedPassword = await hashPassword(password);
 
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-        provider: 'local'
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        provider: true,
-        isVerified: true,
-        createdAt: true
-      }
+    // Create user and default organization in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create user
+      const user = await tx.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          name,
+          provider: 'local'
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          provider: true,
+          isVerified: true,
+          createdAt: true
+        }
+      });
+
+      // Create default organization
+      const organization = await tx.organization.create({
+        data: {
+          name: 'default',
+          description: 'Default organization'
+        }
+      });
+
+      // Add user as admin of the organization
+      await tx.organizationMember.create({
+        data: {
+          organizationId: organization.id,
+          userId: user.id,
+          role: 'admin'
+        }
+      });
+
+      return { user, organization };
     });
 
     // Generate token
     const token = generateToken({
-      userId: user.id,
-      email: user.email
+      userId: result.user.id,
+      email: result.user.email
     });
 
     res.status(201).json({
       message: 'User created successfully',
-      user,
+      user: result.user,
+      organization: {
+        id: result.organization.id,
+        name: result.organization.name,
+        description: result.organization.description
+      },
       token
     });
   } catch (error) {

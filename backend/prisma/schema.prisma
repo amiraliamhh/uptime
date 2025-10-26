@@ -28,5 +28,65 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Relations
+  organizationMembers  OrganizationMember[]
+
   @@map("users")
+}
+
+// Organization model
+model Organization {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  members     OrganizationMember[]
+  monitorings Monitoring[]
+
+  @@map("organizations")
+}
+
+// Organization member model (many-to-many relationship)
+model OrganizationMember {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  organizationId String       @db.ObjectId
+  userId         String       @db.ObjectId
+  role           String       @default("member") // "admin" or "member"
+  joinedAt       DateTime     @default(now())
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@map("organization_members")
+}
+
+// Monitoring model for uptime checks
+model Monitoring {
+  id                    String                    @id @default(auto()) @map("_id") @db.ObjectId
+  organizationId        String                    @db.ObjectId
+  type                  String                    // "https", "tcp"
+  name                  String
+  failThreshold         Int                       @default(3)
+  checkInterval         Int                       @default(300) // seconds
+  checkTimeout          Int                       @default(30)  // seconds
+  url                   String
+  httpMethod            String                    @default("HEAD")
+  requestHeaders        Json                      // Array of objects with key/value pairs
+  followRedirects       Boolean                   @default(true)
+  expectedStatusCodes   String[]                  // Array of strings like "200-299", "300", "301", "400-499"
+  expectedResponseHeaders Json                    // Array of objects with key/value pairs
+  contacts              String[]                  // Array of user IDs
+  isActive              Boolean                   @default(true)
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+
+  // Relations
+  organization          Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("monitorings")
 }

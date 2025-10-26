@@ -198,6 +198,89 @@ const options = {
               description: 'Error message (only present when unhealthy)'
             }
           }
+        },
+        Organization: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Organization ID'
+            },
+            name: {
+              type: 'string',
+              description: 'Organization name'
+            },
+            description: {
+              type: 'string',
+              description: 'Organization description'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Creation date'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update date'
+            },
+            members: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/OrganizationMember'
+              },
+              description: 'Organization members'
+            }
+          }
+        },
+        OrganizationMember: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Membership ID'
+            },
+            organizationId: {
+              type: 'string',
+              description: 'Organization ID'
+            },
+            userId: {
+              type: 'string',
+              description: 'User ID'
+            },
+            role: {
+              type: 'string',
+              enum: ['admin', 'member'],
+              description: 'Member role'
+            },
+            joinedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Join date'
+            },
+            user: {
+              type: 'object',
+              properties: {
+                id: {
+                  type: 'string',
+                  description: 'User ID'
+                },
+                email: {
+                  type: 'string',
+                  format: 'email',
+                  description: 'User email'
+                },
+                name: {
+                  type: 'string',
+                  description: 'User name'
+                },
+                avatar: {
+                  type: 'string',
+                  description: 'User avatar URL'
+                }
+              }
+            }
+          }
         }
       }
     },

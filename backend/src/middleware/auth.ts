@@ -5,8 +5,8 @@ export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     email: string;
-    name?: string;
-    avatar?: string;
+    name?: string | null;
+    avatar?: string | null;
     provider: string;
     isVerified: boolean;
     createdAt: Date;
@@ -33,7 +33,7 @@ export async function authenticateToken(req: AuthenticatedRequest, res: Response
       return res.status(403).json({ error: 'User not found' });
     }
 
-    req.user = user;
+    (req as AuthenticatedRequest).user = user;
     next();
   } catch (error) {
     return res.status(500).json({ error: 'Internal server error' });
