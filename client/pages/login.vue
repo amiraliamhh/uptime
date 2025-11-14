@@ -233,6 +233,6 @@ const handleSubmit = async () => {
 
 const handleGoogleLogin = () => {
   const config = useRuntimeConfig()
-  window.location.href = `${config.public.apiBase}/api/v1/auth/google`
+  window.location.href = `${config.public.apiBaseUrl}/api/v1/auth/google`
 }
 </script>

@@ -41,7 +41,7 @@ const prisma = new PrismaClient();
  */
 router.post('/signup', async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, roles, ...rest } = req.body;
 
     // Validation
     if (!email || !password) {
@@ -50,6 +50,11 @@ router.post('/signup', async (req, res) => {
 
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    // Prevent role modification - roles cannot be set by users
+    if (roles !== undefined) {
+      return res.status(400).json({ error: 'Roles cannot be modified by users' });
     }
 
     // Check if user already exists
@@ -80,6 +85,7 @@ router.post('/signup', async (req, res) => {
           name: true,
           provider: true,
           isVerified: true,
+          roles: true,
           createdAt: true
         }
       });
@@ -202,6 +208,7 @@ router.post('/login', async (req, res) => {
         avatar: user.avatar,
         provider: user.provider,
         isVerified: user.isVerified,
+        roles: user.roles || [],
         createdAt: user.createdAt
       },
       token
@@ -415,6 +422,7 @@ router.get('/profile', authenticateToken, async (req: AuthenticatedRequest, res)
         avatar: true,
         provider: true,
         isVerified: true,
+        roles: true,
         createdAt: true,
         updatedAt: true
       }
@@ -473,7 +481,12 @@ router.get('/profile', authenticateToken, async (req: AuthenticatedRequest, res)
  */
 router.put('/profile', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const { name, avatar } = req.body;
+    const { name, avatar, roles, ...rest } = req.body;
+
+    // Prevent role modification - roles cannot be set by users
+    if (roles !== undefined) {
+      return res.status(400).json({ error: 'Roles cannot be modified by users' });
+    }
 
     const user = await prisma.user.update({
       where: { id: req.user!.id },
@@ -488,6 +501,7 @@ router.put('/profile', authenticateToken, async (req: AuthenticatedRequest, res)
         avatar: true,
         provider: true,
         isVerified: true,
+        roles: true,
         createdAt: true,
         updatedAt: true
       }
@@ -496,6 +510,115 @@ router.put('/profile', authenticateToken, async (req: AuthenticatedRequest, res)
     res.json({ message: 'Profile updated successfully', user });
   } catch (error) {
     console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/auth/change-password:
+ *   post:
+ *     summary: Change user password
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: Current password (required if user has a password)
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *                 description: New password (minimum 6 characters)
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Password changed successfully"
+ *       400:
+ *         description: Bad request - validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized - invalid or missing token or incorrect current password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post('/change-password', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { currentPassword, password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ error: 'New password is required' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    // Get current user with password
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: {
+        id: true,
+        password: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // If user has a password, require current password
+    if (user.password) {
+      if (!currentPassword) {
+        return res.status(400).json({ error: 'Current password is required' });
+      }
+
+      // Verify current password
+      if (!(await comparePassword(currentPassword, user.password))) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
+    }
+
+    // Hash new password
+    const hashedPassword = await hashPassword(password);
+
+    // Update password
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: {
+        password: hashedPassword
+      }
+    });
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

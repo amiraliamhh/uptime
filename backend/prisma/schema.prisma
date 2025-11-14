@@ -10,6 +10,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// User role enum
+enum UserRole {
+  admin
+}
+
 // For now, we'll keep the schema minimal since we only need a health endpoint
 // You can add models here as the project grows
 
@@ -25,6 +30,7 @@ model User {
   isVerified    Boolean   @default(false)
   resetToken    String?
   resetExpires  DateTime?
+  roles         UserRole[] // System roles (admin, etc.). Empty array means default "client" role
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -73,7 +79,7 @@ model Monitor {
   type                  String                    // "https", "tcp"
   name                  String
   failThreshold         Int                       @default(3)
-  checkInterval         Int                       @default(300) // seconds
+  checkInterval         Int                       @default(300) // seconds (5 minutes minimum)
   checkTimeout          Int                       @default(30)  // seconds
   url                   String
   httpMethod            String                    @default("HEAD")

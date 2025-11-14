@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken, getUserById } from '../utils/auth';
 
-export interface AuthenticatedRequest extends Request {
+export interface AdminRequest extends Request {
   user?: {
     id: string;
     email: string;
@@ -15,7 +15,11 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-export async function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+/**
+ * Middleware to authenticate admin users
+ * Verifies JWT token and checks if user has admin role
+ */
+export async function authenticateAdmin(req: AdminRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -34,7 +38,13 @@ export async function authenticateToken(req: AuthenticatedRequest, res: Response
       return res.status(403).json({ error: 'User not found' });
     }
 
-    (req as AuthenticatedRequest).user = user;
+    // Check if user has admin role
+    const isAdmin = user.roles && user.roles.includes('admin');
+    if (!isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    (req as AdminRequest).user = user;
     next();
   } catch (error) {
     return res.status(500).json({ error: 'Internal server error' });

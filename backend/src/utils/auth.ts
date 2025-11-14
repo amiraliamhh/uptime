@@ -43,6 +43,7 @@ export async function getUserById(userId: string) {
       avatar: true,
       provider: true,
       isVerified: true,
+      roles: true,
       createdAt: true,
       updatedAt: true
     }

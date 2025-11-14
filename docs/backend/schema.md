@@ -143,7 +143,7 @@ The Monitor model defines uptime check configurations for websites and services.
 - **Type**: Integer
 
 **Check Interval:**
-- **Range**: 60-3600 seconds (1 minute to 1 hour)
+- **Range**: 300-3600 seconds (5 minutes to 1 hour)
 - **Default**: 300 seconds (5 minutes)
 - **Type**: Integer
 

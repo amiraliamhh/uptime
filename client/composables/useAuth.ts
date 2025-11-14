@@ -8,7 +8,7 @@ export const useAuth = () => {
 
   const signup = async (data: { email: string; password: string; name?: string }) => {
     try {
-      const response = await $fetch(`${config.public.apiBase}/api/v1/auth/signup`, {
+      const response = await $fetch(`${config.public.apiBaseUrl}/api/v1/auth/signup`, {
         method: 'POST',
         body: data
       })
@@ -29,7 +29,7 @@ export const useAuth = () => {
 
   const login = async (data: { email: string; password: string }) => {
     try {
-      const response = await $fetch(`${config.public.apiBase}/api/v1/auth/login`, {
+      const response = await $fetch(`${config.public.apiBaseUrl}/api/v1/auth/login`, {
         method: 'POST',
         body: data
       })
@@ -50,7 +50,7 @@ export const useAuth = () => {
 
   const forgotPassword = async (email: string) => {
     try {
-      const response = await $fetch(`${config.public.apiBase}/api/v1/auth/forgot-password`, {
+      const response = await $fetch(`${config.public.apiBaseUrl}/api/v1/auth/forgot-password`, {
         method: 'POST',
         body: { email }
       })
@@ -69,11 +69,15 @@ export const useAuth = () => {
     user.value = null
   }
 
+  const setToken = (newToken: string | null) => {
+    token.value = newToken
+  }
+
   const fetchProfile = async () => {
     if (!token.value) return
 
     try {
-      const response = await $fetch(`${config.public.apiBase}/api/v1/auth/profile`, {
+      const response = await $fetch(`${config.public.apiBaseUrl}/api/v1/auth/profile`, {
         headers: {
           Authorization: `Bearer ${token.value}`
         }
@@ -82,11 +86,30 @@ export const useAuth = () => {
       user.value = response.user
       return { success: true, data: response }
     } catch (error: any) {
-      // Token might be invalid
-      if (error.status === 401) {
-        logout()
-      }
+      // Log out on any profile request failure
+      logout()
       return { success: false, error: error.data?.error || 'Failed to fetch profile' }
+    }
+  }
+
+  const changePassword = async (data: { currentPassword?: string; password: string }) => {
+    if (!token.value) return { success: false, error: 'Not authenticated' }
+
+    try {
+      const response = await $fetch(`${config.public.apiBaseUrl}/api/v1/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token.value}`
+        },
+        body: data
+      })
+
+      return { success: true, data: response }
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.data?.error || error.message || 'Failed to change password' 
+      }
     }
   }
 
@@ -97,7 +120,9 @@ export const useAuth = () => {
     login,
     forgotPassword,
     logout,
+    setToken,
     fetchProfile,
+    changePassword,
     isAuthenticated,
     user: readonly(user),
     token: readonly(token)

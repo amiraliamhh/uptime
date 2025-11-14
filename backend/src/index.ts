@@ -7,7 +7,11 @@ import swaggerUi from 'swagger-ui-express';
 import { PrismaClient } from '@prisma/client';
 import authRoutes from './routes/auth';
 import googleAuthRoutes from './routes/googleAuth';
+import adminAuthRoutes from './routes/adminAuth';
+import adminUsersRoutes from './routes/adminUsers';
+import adminQueueRoutes from './routes/adminQueue';
 import organizationRoutes from './routes/organizations';
+import monitorRoutes from './routes/monitors';
 import { swaggerSpec } from './config/swagger';
 import './config/passport';
 
@@ -18,7 +22,7 @@ const PORT = process.env.BACKEND_PORT || 6052;
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:6051',
+  origin: [process.env.FRONTEND_URL || 'http://localhost:6051', process.env.ADMIN_URL || 'http://localhost:6053'],
   credentials: true
 }));
 app.use(express.json());
@@ -53,7 +57,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 // Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/auth', googleAuthRoutes);
+app.use('/api/v1/admin/auth', adminAuthRoutes);
+app.use('/api/v1/admin/users', adminUsersRoutes);
+app.use('/api/v1/admin/queue', adminQueueRoutes);
 app.use('/api/v1/organizations', organizationRoutes);
+app.use('/api/v1/monitors', monitorRoutes);
 
 /**
  * @swagger

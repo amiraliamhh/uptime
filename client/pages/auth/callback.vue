@@ -26,12 +26,8 @@
 <script lang="ts" setup>
 const route = useRoute()
 const localePath = useLocalePath()
+const { setToken, fetchProfile } = useAuth()
 
-const token = useCookie('auth_token', { 
-  maxAge: 60 * 60 * 24 * 7,
-  sameSite: 'lax'
-})
-const user = useState('user')
 const error = ref('')
 
 onMounted(async () => {
@@ -50,22 +46,15 @@ onMounted(async () => {
 
   if (tokenFromQuery) {
     // Store the token
-    token.value = tokenFromQuery
+    setToken(tokenFromQuery)
     
-    // Fetch user profile
-    try {
-      const config = useRuntimeConfig()
-      const response = await $fetch(`${config.public.apiBase}/api/v1/auth/profile`, {
-        headers: {
-          Authorization: `Bearer ${tokenFromQuery}`
-        }
-      })
-      
-      user.value = response.user
-      
+    // Fetch user profile using the composable (will log out on failure)
+    const result = await fetchProfile()
+    
+    if (result && result.success) {
       // Redirect to dashboard
       await navigateTo(localePath('/dashboard'))
-    } catch (err: any) {
+    } else {
       error.value = 'Failed to fetch user profile'
       setTimeout(() => {
         navigateTo(localePath('/login'))
