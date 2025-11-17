@@ -36,6 +36,7 @@ model User {
 
   // Relations
   organizationMembers  OrganizationMember[]
+  sentInvitations      Invitation[]        @relation("InvitedBy")
 
   @@map("users")
 }
@@ -52,6 +53,8 @@ model Organization {
   members     OrganizationMember[]
   monitors    Monitor[]
   logs        Log[]
+  dailySummaries DailySummary[]
+  invitations Invitation[]
 
   @@map("organizations")
 }
@@ -95,6 +98,7 @@ model Monitor {
   // Relations
   organization          Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   logs                  Log[]
+  dailySummaries        DailySummary[]
 
   @@map("monitors")
 }
@@ -135,4 +139,60 @@ model Log {
   @@index([organizationId, checkedAt])
   @@index([status, checkedAt])
   @@map("logs")
+}
+
+// Daily summary model for efficient uptime calculations
+model DailySummary {
+  id                    String                    @id @default(auto()) @map("_id") @db.ObjectId
+  monitorId             String                    @db.ObjectId
+  organizationId        String                    @db.ObjectId
+  date                  DateTime                  // Date of the summary (YYYY-MM-DD)
+  totalChecks           Int                       @default(0) // Total number of checks performed
+  successfulChecks      Int                       @default(0) // Number of successful checks
+  failedChecks          Int                       @default(0) // Number of failed checks (status = "failure")
+  timeoutChecks         Int                       @default(0) // Number of timeout checks
+  errorChecks           Int                       @default(0) // Number of error checks
+  uptimePercentage      Float                     @default(0) // Uptime percentage (0-100)
+  averageResponseTime   Float                     @default(0) // Average response time in milliseconds
+  minResponseTime       Int?                      // Minimum response time in milliseconds
+  maxResponseTime       Int?                      // Maximum response time in milliseconds
+  totalResponseTime     Float                     @default(0) // Sum of all response times (for calculating average)
+  lastUpdated           DateTime                  @updatedAt // Last time this summary was updated
+  createdAt             DateTime                  @default(now())
+
+  // Relations
+  monitor               Monitor                   @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+  organization          Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Unique constraint: one summary per monitor per day
+  // Note: @@unique automatically creates an index, so we don't need @@index([monitorId, date])
+  @@unique([monitorId, date])
+  @@index([organizationId, date])
+  @@index([date])
+  @@map("daily_summaries")
+}
+
+// Invitation model for inviting users to organizations
+model Invitation {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  email          String    // Email address of the invited user
+  organizationId String    @db.ObjectId
+  invitedById    String    @db.ObjectId // User who sent the invitation
+  token          String    @unique // Unique token for the invitation link
+  status         String    @default("pending") // "pending", "accepted", "expired", "cancelled"
+  expiresAt      DateTime  // Expiration date/time for the invitation
+  acceptedAt     DateTime? // When the invitation was accepted
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy      User         @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  // Indexes for efficient querying
+  // Note: @@unique automatically creates an index, so we don't need @@index([token])
+  @@index([email, status])
+  @@index([organizationId, status])
+  @@index([expiresAt])
+  @@map("invitations")
 }

@@ -12,7 +12,9 @@ import adminUsersRoutes from './routes/adminUsers';
 import adminQueueRoutes from './routes/adminQueue';
 import organizationRoutes from './routes/organizations';
 import monitorRoutes from './routes/monitors';
+import invitationRoutes from './routes/invitations';
 import { swaggerSpec } from './config/swagger';
+import { scheduleDailyReconciliation } from './services/queue';
 import './config/passport';
 
 const app = express();
@@ -61,7 +63,8 @@ app.use('/api/v1/admin/auth', adminAuthRoutes);
 app.use('/api/v1/admin/users', adminUsersRoutes);
 app.use('/api/v1/admin/queue', adminQueueRoutes);
 app.use('/api/v1/organizations', organizationRoutes);
-app.use('/api/v1/monitors', monitorRoutes);
+app.use('/api/v1', monitorRoutes);
+app.use('/api/v1', invitationRoutes);
 
 /**
  * @swagger
@@ -104,8 +107,15 @@ app.get('/health', async (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
+  
+  // Schedule daily summary reconciliation job
+  try {
+    await scheduleDailyReconciliation();
+  } catch (error) {
+    console.error('Failed to schedule daily reconciliation:', error);
+  }
 });
 
 // Graceful shutdown

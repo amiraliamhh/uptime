@@ -313,11 +313,52 @@ export async function getJobsPaginated(
   }
 }
 
+// Daily summary reconciliation queue
+export const summaryReconciliationQueue = new Queue('summary-reconciliation', {
+  connection: redis,
+  defaultJobOptions: {
+    removeOnComplete: 10,
+    removeOnFail: 5,
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 5000,
+    },
+  },
+});
+
+/**
+ * Schedule daily summary reconciliation job
+ * This runs once per day to recalculate summaries for the previous day
+ * as a safety net in case any incremental updates were missed
+ */
+export async function scheduleDailyReconciliation(): Promise<void> {
+  try {
+    // Run daily at 2:00 AM (after most checks are done)
+    const cronPattern = '0 2 * * *'; // Daily at 2 AM
+    
+    await summaryReconciliationQueue.add('reconcile-daily-summaries', {}, {
+      repeat: { pattern: cronPattern },
+      jobId: 'daily-summary-reconciliation',
+    });
+
+    monitorLogger.info('[QUEUE] Scheduled daily summary reconciliation', {
+      cronPattern,
+      nextRun: 'Daily at 2:00 AM',
+    });
+  } catch (error) {
+    monitorLogger.error('[QUEUE] Failed to schedule daily reconciliation', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+}
+
 // Graceful shutdown
 export async function closeQueue(): Promise<void> {
   try {
     await monitorQueue.close();
     await queueEvents.close();
+    await summaryReconciliationQueue.close();
     monitorLogger.info('Queue closed gracefully');
   } catch (error) {
     logger.error('Error closing queue', { error });

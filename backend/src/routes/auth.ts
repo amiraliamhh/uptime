@@ -69,60 +69,36 @@ router.post('/signup', async (req, res) => {
     // Hash password
     const hashedPassword = await hashPassword(password);
 
-    // Create user and default organization in a transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Create user
-      const user = await tx.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          name,
-          provider: 'local'
-        },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          provider: true,
-          isVerified: true,
-          roles: true,
-          createdAt: true
-        }
-      });
-
-      // Create default organization
-      const organization = await tx.organization.create({
-        data: {
-          name: 'default',
-          description: 'Default organization'
-        }
-      });
-
-      // Add user as admin of the organization
-      await tx.organizationMember.create({
-        data: {
-          organizationId: organization.id,
-          userId: user.id,
-          role: 'admin'
-        }
-      });
-
-      return { user, organization };
+    // Create user (no default organization)
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        name,
+        provider: 'local'
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        provider: true,
+        isVerified: true,
+        roles: true,
+        createdAt: true
+      }
     });
 
     // Generate token
     const token = generateToken({
-      userId: result.user.id,
-      email: result.user.email
+      userId: user.id,
+      email: user.email
     });
 
     res.status(201).json({
       message: 'User created successfully',
-      user: result.user,
-      organization: {
-        id: result.organization.id,
-        name: result.organization.name,
-        description: result.organization.description
+      user: {
+        ...user,
+        hasOrganization: false
       },
       token
     });
@@ -391,7 +367,36 @@ router.post('/reset-password', async (req, res) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ProfileResponse'
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     avatar:
+ *                       type: string
+ *                     provider:
+ *                       type: string
+ *                     isVerified:
+ *                       type: boolean
+ *                     roles:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                     hasOrganization:
+ *                       type: boolean
+ *                       description: Whether the user is associated with at least one organization
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
  *       401:
  *         description: Unauthorized - invalid or missing token
  *         content:
@@ -432,7 +437,19 @@ router.get('/profile', authenticateToken, async (req: AuthenticatedRequest, res)
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json({ user });
+    // Check if user is associated with at least one organization
+    const organizationCount = await prisma.organizationMember.count({
+      where: { userId: req.user!.id }
+    });
+
+    const hasOrganization = organizationCount > 0;
+
+    res.json({ 
+      user: {
+        ...user,
+        hasOrganization
+      }
+    });
   } catch (error) {
     console.error('Profile error:', error);
     res.status(500).json({ error: 'Internal server error' });

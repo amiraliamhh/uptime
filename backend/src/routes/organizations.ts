@@ -474,4 +474,225 @@ router.delete('/:id/members/:memberId', authenticateToken, async (req: Authentic
   }
 });
 
+/**
+ * @swagger
+ * /api/v1/organizations/{id}:
+ *   get:
+ *     summary: Get organization by ID
+ *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Organization ID
+ *     responses:
+ *       200:
+ *         description: Organization retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 organization:
+ *                   $ref: '#/components/schemas/Organization'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - not a member of organization
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Organization not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if user is a member of the organization
+    const membership = await prisma.organizationMember.findFirst({
+      where: {
+        organizationId: id,
+        userId: req.user!.id
+      }
+    });
+
+    if (!membership) {
+      return res.status(403).json({ error: 'You are not a member of this organization' });
+    }
+
+    const organization = await prisma.organization.findUnique({
+      where: { id },
+      include: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                avatar: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!organization) {
+      return res.status(404).json({ error: 'Organization not found' });
+    }
+
+    res.json({ organization });
+  } catch (error) {
+    console.error('Get organization error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/organizations/{id}:
+ *   put:
+ *     summary: Update organization
+ *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Organization ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Organization name
+ *               description:
+ *                 type: string
+ *                 description: Organization description
+ *     responses:
+ *       200:
+ *         description: Organization updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Organization updated successfully"
+ *                 organization:
+ *                   $ref: '#/components/schemas/Organization'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - not an admin
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Organization not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description } = req.body;
+
+    // Check if user is an admin of the organization
+    const membership = await prisma.organizationMember.findFirst({
+      where: {
+        organizationId: id,
+        userId: req.user!.id,
+        role: 'admin'
+      }
+    });
+
+    if (!membership) {
+      return res.status(403).json({ error: 'Only admins can update the organization' });
+    }
+
+    // Check if organization exists
+    const organization = await prisma.organization.findUnique({
+      where: { id }
+    });
+
+    if (!organization) {
+      return res.status(404).json({ error: 'Organization not found' });
+    }
+
+    // Update organization
+    const updatedOrganization = await prisma.organization.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description })
+      },
+      include: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                avatar: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    res.json({
+      message: 'Organization updated successfully',
+      organization: updatedOrganization
+    });
+  } catch (error) {
+    console.error('Update organization error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

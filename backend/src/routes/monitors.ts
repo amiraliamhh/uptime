@@ -11,12 +11,19 @@ const prisma = new PrismaClient();
 
 /**
  * @swagger
- * /api/v1/monitors:
+ * /api/v1/organizations/{organizationId}/monitors:
  *   get:
  *     summary: Get monitors for organization
  *     tags: [Monitors]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Organization ID
  *     responses:
  *       200:
  *         description: Monitors retrieved successfully
@@ -35,6 +42,12 @@ const prisma = new PrismaClient();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - not a member of organization
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
  *         content:
@@ -42,19 +55,25 @@ const prisma = new PrismaClient();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.get('/organizations/:organizationId/monitors', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    // Get user's organizations
-    const userOrganizations = await prisma.organizationMember.findMany({
-      where: { userId: req.user!.id },
-      select: { organizationId: true }
+    const { organizationId } = req.params;
+
+    // Check if user is a member of the organization
+    const membership = await prisma.organizationMember.findFirst({
+      where: {
+        organizationId,
+        userId: req.user!.id
+      }
     });
 
-    const organizationIds = userOrganizations.map(org => org.organizationId);
+    if (!membership) {
+      return res.status(403).json({ error: 'You are not a member of this organization' });
+    }
 
     const monitors = await prisma.monitor.findMany({
       where: {
-        organizationId: { in: organizationIds }
+        organizationId
       },
       include: {
         organization: {
@@ -83,12 +102,19 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
 
 /**
  * @swagger
- * /api/v1/monitors:
+ * /api/v1/organizations/{organizationId}/monitors:
  *   post:
  *     summary: Create a new monitor
  *     tags: [Monitors]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Organization ID
  *     requestBody:
  *       required: true
  *       content:
@@ -186,6 +212,12 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - not a member of organization
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
  *         content:
@@ -193,8 +225,9 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.post('/organizations/:organizationId/monitors', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
+    const { organizationId } = req.params;
     const {
       type,
       name,
@@ -219,10 +252,6 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ error: 'Type must be either https or tcp' });
     }
 
-    if (checkInterval < 180 || checkInterval > 3600) {
-      return res.status(400).json({ error: 'Check interval must be between 3 minutes (180 seconds) and 1 hour (3600 seconds)' });
-    }
-
     if (checkTimeout < 5 || checkTimeout > 120) {
       return res.status(400).json({ error: 'Check timeout must be between 5 and 120 seconds' });
     }
@@ -235,20 +264,22 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ error: 'Fail threshold must be between 1 and 10' });
     }
 
-    // Get user's first organization (for now, we'll use the first one)
-    const userOrganization = await prisma.organizationMember.findFirst({
-      where: { userId: req.user!.id },
-      select: { organizationId: true }
+    // Check if user is a member of the organization
+    const membership = await prisma.organizationMember.findFirst({
+      where: {
+        organizationId,
+        userId: req.user!.id
+      }
     });
 
-    if (!userOrganization) {
-      return res.status(400).json({ error: 'User must be a member of an organization' });
+    if (!membership) {
+      return res.status(403).json({ error: 'You are not a member of this organization' });
     }
 
     // Create monitor
     const monitor = await prisma.monitor.create({
       data: {
-        organizationId: userOrganization.organizationId,
+        organizationId,
         type,
         name,
         url,
@@ -306,13 +337,19 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
 
 /**
  * @swagger
- * /api/v1/monitors/{id}:
+ * /api/v1/organizations/{organizationId}/monitors/{id}:
  *   get:
  *     summary: Get monitor by ID
  *     tags: [Monitors]
  *     security:
  *       - bearerAuth: []
  *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Organization ID
  *       - in: path
  *         name: id
  *         required: true
@@ -335,6 +372,12 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - not a member of organization
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Monitor not found
  *         content:
@@ -348,22 +391,26 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.get('/organizations/:organizationId/monitors/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const { id } = req.params;
+    const { organizationId, id } = req.params;
 
-    // Get user's organizations
-    const userOrganizations = await prisma.organizationMember.findMany({
-      where: { userId: req.user!.id },
-      select: { organizationId: true }
+    // Check if user is a member of the organization
+    const membership = await prisma.organizationMember.findFirst({
+      where: {
+        organizationId,
+        userId: req.user!.id
+      }
     });
 
-    const organizationIds = userOrganizations.map(org => org.organizationId);
+    if (!membership) {
+      return res.status(403).json({ error: 'You are not a member of this organization' });
+    }
 
     const monitor = await prisma.monitor.findFirst({
       where: {
         id,
-        organizationId: { in: organizationIds }
+        organizationId
       },
       include: {
         organization: {
@@ -393,13 +440,19 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => 
 
 /**
  * @swagger
- * /api/v1/monitors/{id}:
+ * /api/v1/organizations/{organizationId}/monitors/{id}:
  *   put:
  *     summary: Update monitor
  *     tags: [Monitors]
  *     security:
  *       - bearerAuth: []
  *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Organization ID
  *       - in: path
  *         name: id
  *         required: true
@@ -451,6 +504,12 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => 
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - not a member of organization
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Monitor not found
  *         content:
@@ -464,23 +523,27 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => 
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.put('/organizations/:organizationId/monitors/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const { id } = req.params;
+    const { organizationId, id } = req.params;
     const updateData = req.body;
 
-    // Get user's organizations
-    const userOrganizations = await prisma.organizationMember.findMany({
-      where: { userId: req.user!.id },
-      select: { organizationId: true }
+    // Check if user is a member of the organization
+    const membership = await prisma.organizationMember.findFirst({
+      where: {
+        organizationId,
+        userId: req.user!.id
+      }
     });
 
-    const organizationIds = userOrganizations.map(org => org.organizationId);
+    if (!membership) {
+      return res.status(403).json({ error: 'You are not a member of this organization' });
+    }
 
     const monitor = await prisma.monitor.findFirst({
       where: {
         id,
-        organizationId: { in: organizationIds }
+        organizationId
       }
     });
 
@@ -558,13 +621,19 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => 
 
 /**
  * @swagger
- * /api/v1/monitors/{id}:
+ * /api/v1/organizations/{organizationId}/monitors/{id}:
  *   delete:
  *     summary: Delete monitor
  *     tags: [Monitors]
  *     security:
  *       - bearerAuth: []
  *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Organization ID
  *       - in: path
  *         name: id
  *         required: true
@@ -588,6 +657,12 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => 
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - not a member of organization
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Monitor not found
  *         content:
@@ -601,22 +676,26 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => 
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.delete('/organizations/:organizationId/monitors/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const { id } = req.params;
+    const { organizationId, id } = req.params;
 
-    // Get user's organizations
-    const userOrganizations = await prisma.organizationMember.findMany({
-      where: { userId: req.user!.id },
-      select: { organizationId: true }
+    // Check if user is a member of the organization
+    const membership = await prisma.organizationMember.findFirst({
+      where: {
+        organizationId,
+        userId: req.user!.id
+      }
     });
 
-    const organizationIds = userOrganizations.map(org => org.organizationId);
+    if (!membership) {
+      return res.status(403).json({ error: 'You are not a member of this organization' });
+    }
 
     const monitor = await prisma.monitor.findFirst({
       where: {
         id,
-        organizationId: { in: organizationIds }
+        organizationId
       }
     });
 
@@ -646,13 +725,19 @@ router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res) 
 
 /**
  * @swagger
- * /api/v1/monitors/{id}/logs:
+ * /api/v1/organizations/{organizationId}/monitors/{id}/logs:
  *   get:
  *     summary: Get monitor logs
  *     tags: [Monitors]
  *     security:
  *       - bearerAuth: []
  *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Organization ID
  *       - in: path
  *         name: id
  *         required: true
@@ -691,6 +776,12 @@ router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res) 
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - not a member of organization
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Monitor not found
  *         content:
@@ -704,25 +795,29 @@ router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res) 
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/:id/logs', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.get('/organizations/:organizationId/monitors/:id/logs', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const { id } = req.params;
+    const { organizationId, id } = req.params;
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
 
-    // Get user's organizations
-    const userOrganizations = await prisma.organizationMember.findMany({
-      where: { userId: req.user!.id },
-      select: { organizationId: true }
+    // Check if user is a member of the organization
+    const membership = await prisma.organizationMember.findFirst({
+      where: {
+        organizationId,
+        userId: req.user!.id
+      }
     });
 
-    const organizationIds = userOrganizations.map(org => org.organizationId);
+    if (!membership) {
+      return res.status(403).json({ error: 'You are not a member of this organization' });
+    }
 
-    // Check if monitor exists and user has access
+    // Check if monitor exists and belongs to organization
     const monitor = await prisma.monitor.findFirst({
       where: {
         id,
-        organizationId: { in: organizationIds }
+        organizationId
       }
     });
 
@@ -746,6 +841,407 @@ router.get('/:id/logs', authenticateToken, async (req: AuthenticatedRequest, res
     res.json({ logs, total });
   } catch (error) {
     logger.error('Get monitor logs error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/organizations/{organizationId}/monitors/{id}/summaries:
+ *   get:
+ *     summary: Get daily summaries for a monitor with date range
+ *     tags: [Monitors]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Organization ID
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Monitor ID
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date (YYYY-MM-DD). Defaults to 30 days ago
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date (YYYY-MM-DD). Defaults to today
+ *     responses:
+ *       200:
+ *         description: Daily summaries retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 summaries:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       monitorId:
+ *                         type: string
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                       totalChecks:
+ *                         type: integer
+ *                       successfulChecks:
+ *                         type: integer
+ *                       failedChecks:
+ *                         type: integer
+ *                       timeoutChecks:
+ *                         type: integer
+ *                       errorChecks:
+ *                         type: integer
+ *                       uptimePercentage:
+ *                         type: number
+ *                       averageResponseTime:
+ *                         type: number
+ *                       minResponseTime:
+ *                         type: integer
+ *                       maxResponseTime:
+ *                         type: integer
+ *                 total:
+ *                   type: integer
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - not a member of organization
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Monitor not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get('/organizations/:organizationId/monitors/:id/summaries', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { organizationId, id } = req.params;
+    const { startDate, endDate } = req.query;
+
+    // Check if user is a member of the organization
+    const membership = await prisma.organizationMember.findFirst({
+      where: {
+        organizationId,
+        userId: req.user!.id
+      }
+    });
+
+    if (!membership) {
+      return res.status(403).json({ error: 'You are not a member of this organization' });
+    }
+
+    // Check if monitor exists and belongs to organization
+    const monitor = await prisma.monitor.findFirst({
+      where: {
+        id,
+        organizationId
+      }
+    });
+
+    if (!monitor) {
+      return res.status(404).json({ error: 'Monitor not found' });
+    }
+
+    // Parse date range (default to last 30 days)
+    const end = endDate ? new Date(endDate as string) : new Date();
+    end.setHours(23, 59, 59, 999); // End of day
+
+    const start = startDate 
+      ? new Date(startDate as string) 
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+    start.setHours(0, 0, 0, 0); // Start of day
+
+    // Validate date range
+    if (start > end) {
+      return res.status(400).json({ error: 'Start date must be before end date' });
+    }
+
+    // Get daily summaries
+    const [summaries, total] = await Promise.all([
+      prisma.dailySummary.findMany({
+        where: {
+          monitorId: id,
+          date: {
+            gte: start,
+            lte: end,
+          },
+        },
+        orderBy: {
+          date: 'desc',
+        },
+      }),
+      prisma.dailySummary.count({
+        where: {
+          monitorId: id,
+          date: {
+            gte: start,
+            lte: end,
+          },
+        },
+      }),
+    ]);
+
+    res.json({
+      summaries: summaries.map(summary => ({
+        id: summary.id,
+        monitorId: summary.monitorId,
+        date: summary.date.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        totalChecks: summary.totalChecks,
+        successfulChecks: summary.successfulChecks,
+        failedChecks: summary.failedChecks,
+        timeoutChecks: summary.timeoutChecks,
+        errorChecks: summary.errorChecks,
+        uptimePercentage: summary.uptimePercentage,
+        averageResponseTime: summary.averageResponseTime,
+        minResponseTime: summary.minResponseTime,
+        maxResponseTime: summary.maxResponseTime,
+        lastUpdated: summary.lastUpdated,
+      })),
+      total,
+      dateRange: {
+        start: start.toISOString().split('T')[0],
+        end: end.toISOString().split('T')[0],
+      },
+    });
+  } catch (error) {
+    logger.error('Get monitor summaries error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/organizations/{organizationId}/monitors/{id}/uptime:
+ *   get:
+ *     summary: Get aggregated uptime statistics from daily summaries
+ *     tags: [Monitors]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Organization ID
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Monitor ID
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date (YYYY-MM-DD). Defaults to 30 days ago
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date (YYYY-MM-DD). Defaults to today
+ *     responses:
+ *       200:
+ *         description: Uptime statistics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 uptime:
+ *                   type: object
+ *                   properties:
+ *                     overallUptimePercentage:
+ *                       type: number
+ *                       description: Overall uptime percentage for the date range
+ *                     totalChecks:
+ *                       type: integer
+ *                       description: Total number of checks in the date range
+ *                     successfulChecks:
+ *                       type: integer
+ *                     failedChecks:
+ *                       type: integer
+ *                     timeoutChecks:
+ *                       type: integer
+ *                     errorChecks:
+ *                       type: integer
+ *                     averageResponseTime:
+ *                       type: number
+ *                     minResponseTime:
+ *                       type: integer
+ *                     maxResponseTime:
+ *                       type: integer
+ *                     daysWithData:
+ *                       type: integer
+ *                       description: Number of days with summary data
+ *                 dateRange:
+ *                   type: object
+ *                   properties:
+ *                     start:
+ *                       type: string
+ *                       format: date
+ *                     end:
+ *                       type: string
+ *                       format: date
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - not a member of organization
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Monitor not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get('/organizations/:organizationId/monitors/:id/uptime', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { organizationId, id } = req.params;
+    const { startDate, endDate } = req.query;
+
+    // Check if user is a member of the organization
+    const membership = await prisma.organizationMember.findFirst({
+      where: {
+        organizationId,
+        userId: req.user!.id
+      }
+    });
+
+    if (!membership) {
+      return res.status(403).json({ error: 'You are not a member of this organization' });
+    }
+
+    // Check if monitor exists and belongs to organization
+    const monitor = await prisma.monitor.findFirst({
+      where: {
+        id,
+        organizationId
+      }
+    });
+
+    if (!monitor) {
+      return res.status(404).json({ error: 'Monitor not found' });
+    }
+
+    // Parse date range (default to last 30 days)
+    const end = endDate ? new Date(endDate as string) : new Date();
+    end.setHours(23, 59, 59, 999); // End of day
+
+    const start = startDate 
+      ? new Date(startDate as string) 
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+    start.setHours(0, 0, 0, 0); // Start of day
+
+    // Validate date range
+    if (start > end) {
+      return res.status(400).json({ error: 'Start date must be before end date' });
+    }
+
+    // Get all daily summaries in the date range
+    const summaries = await prisma.dailySummary.findMany({
+      where: {
+        monitorId: id,
+        date: {
+          gte: start,
+          lte: end,
+        },
+      },
+      orderBy: {
+        date: 'asc',
+      },
+    });
+
+    // Aggregate statistics
+    const totalChecks = summaries.reduce((sum, s) => sum + s.totalChecks, 0);
+    const successfulChecks = summaries.reduce((sum, s) => sum + s.successfulChecks, 0);
+    const failedChecks = summaries.reduce((sum, s) => sum + s.failedChecks, 0);
+    const timeoutChecks = summaries.reduce((sum, s) => sum + s.timeoutChecks, 0);
+    const errorChecks = summaries.reduce((sum, s) => sum + s.errorChecks, 0);
+    
+    // Calculate weighted average response time
+    const totalResponseTime = summaries.reduce((sum, s) => sum + (s.totalResponseTime || 0), 0);
+    const averageResponseTime = totalChecks > 0 ? totalResponseTime / totalChecks : 0;
+
+    // Get min/max response times
+    const responseTimes = summaries
+      .map(s => [s.minResponseTime, s.maxResponseTime])
+      .flat()
+      .filter((rt): rt is number => rt !== null && rt !== undefined);
+    
+    const minResponseTime = responseTimes.length > 0 ? Math.min(...responseTimes) : null;
+    const maxResponseTime = responseTimes.length > 0 ? Math.max(...responseTimes) : null;
+
+    // Calculate overall uptime percentage
+    const overallUptimePercentage = totalChecks > 0 
+      ? (successfulChecks / totalChecks) * 100 
+      : 0;
+
+    res.json({
+      uptime: {
+        overallUptimePercentage: parseFloat(overallUptimePercentage.toFixed(2)),
+        totalChecks,
+        successfulChecks,
+        failedChecks,
+        timeoutChecks,
+        errorChecks,
+        averageResponseTime: parseFloat(averageResponseTime.toFixed(2)),
+        minResponseTime,
+        maxResponseTime,
+        daysWithData: summaries.length,
+      },
+      dateRange: {
+        start: start.toISOString().split('T')[0],
+        end: end.toISOString().split('T')[0],
+      },
+    });
+  } catch (error) {
+    logger.error('Get monitor uptime error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

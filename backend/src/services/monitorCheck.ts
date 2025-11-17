@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { monitorLogger } from '../config/logger';
+import { updateDailySummary } from './dailySummary';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -356,7 +357,10 @@ export class MonitorChecker {
   }
 
   static async saveLog(monitorId: string, organizationId: string, result: CheckResult): Promise<void> {
+    const checkedAt = new Date();
+    
     try {
+      // Save the log to database
       await prisma.log.create({
         data: {
           monitorId,
@@ -380,8 +384,17 @@ export class MonitorChecker {
           responseBodyTruncated: result.responseBodyTruncated,
           userAgent: result.userAgent,
           ipAddress: result.ipAddress,
-          checkedAt: new Date(),
+          checkedAt,
         },
+      });
+
+      // Update daily summary incrementally (non-blocking, errors are logged but don't fail the check)
+      updateDailySummary(monitorId, organizationId, result, checkedAt).catch((error) => {
+        // Error already logged in updateDailySummary, just ensure it doesn't break the flow
+        monitorLogger.warn('[DAILY-SUMMARY] Daily summary update failed, will be reconciled later', {
+          monitorId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
       });
 
       // Only log successful saves in development

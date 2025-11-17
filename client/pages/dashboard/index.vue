@@ -19,18 +19,6 @@
               <span class="font-medium">Monitors</span>
             </NuxtLink>
 
-          <!-- Status Pages -->
-          <NuxtLink
-            to="/dashboard/status-pages"
-            class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            :class="{ 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400': $route.path.startsWith('/dashboard/status-pages') }"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span class="font-medium">Status Pages</span>
-          </NuxtLink>
-
           <!-- Reports -->
           <NuxtLink
             to="/dashboard/reports"
@@ -43,17 +31,16 @@
             <span class="font-medium">Reports</span>
           </NuxtLink>
 
-          <!-- Settings -->
+          <!-- Organization -->
           <NuxtLink
-            to="/dashboard/settings"
+            to="/dashboard/organization"
             class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            :class="{ 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400': $route.path.startsWith('/dashboard/settings') }"
+            :class="{ 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400': $route.path.startsWith('/dashboard/organization') }"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <span class="font-medium">Settings</span>
+            <span class="font-medium">Organization</span>
           </NuxtLink>
         </nav>
 
@@ -188,7 +175,13 @@
                 </tr>
 
                 <!-- Monitor Data -->
-                <tr v-else v-for="monitor in filteredMonitors" :key="monitor.id" class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <tr 
+                  v-else 
+                  v-for="monitor in filteredMonitors" 
+                  :key="monitor.id" 
+                  class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                  @click="navigateTo(localePath(`/dashboard/monitors/${monitor.id}`))"
+                >
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span :class="[
                       'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
@@ -214,20 +207,14 @@
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900 dark:text-white">{{ getAverageResponseTime(monitor) }}ms</div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm" @click.stop>
                     <div class="flex items-center space-x-3">
-                      <NuxtLink :to="localePath(`/dashboard/monitors/${monitor.id}`)" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300" title="View details">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      </NuxtLink>
                       <NuxtLink :to="localePath(`/dashboard/monitors/${monitor.id}/edit`)" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300" title="Edit">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </NuxtLink>
-                      <button @click="handleDelete(monitor.id)" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300" title="Delete">
+                      <button @click.stop="handleDelete(monitor.id)" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300" title="Delete">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
@@ -251,6 +238,7 @@ definePageMeta({
 
 const { user, isAuthenticated, fetchProfile, logout } = useAuth()
 const { monitors, fetchMonitors, deleteMonitor, loading: monitorsLoading, error: monitorsError } = useMonitors()
+const { currentOrganization, organizations, fetchOrganizations, fetchOrganization } = useOrganizations()
 const localePath = useLocalePath()
 
 // Search query
@@ -304,11 +292,28 @@ onMounted(async () => {
     await fetchProfile()
   }
   
-  // Fetch monitors
+  // Ensure organization is loaded before fetching monitors
+  if (!currentOrganization.value) {
+    try {
+      await fetchOrganizations()
+      if (organizations.value.length > 0) {
+        const savedOrgId = localStorage.getItem('selectedOrganizationId')
+        const org = savedOrgId ? organizations.value.find(o => o.id === savedOrgId) : organizations.value[0]
+        if (org) {
+          await fetchOrganization(org.id)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load organizations:', err)
+    }
+  }
+  
+  // Fetch monitors (will use currentOrganization automatically)
   try {
     await fetchMonitors()
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to fetch monitors:', err)
+    // Error message will be shown in the UI via monitorsError
   }
 })
 
