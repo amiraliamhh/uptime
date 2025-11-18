@@ -85,12 +85,22 @@ export function useMonitors() {
     return tokenCookie.value
   }
 
-  // Get organization ID from current organization
+  // Get organization ID from current organization or localStorage
   const getOrganizationId = () => {
-    if (!currentOrganization.value?.id) {
-      throw new Error('No organization selected. Please select an organization first.')
+    // First try currentOrganization
+    if (currentOrganization.value?.id) {
+      return currentOrganization.value.id
     }
-    return currentOrganization.value.id
+    
+    // Fallback to localStorage
+    if (typeof window !== 'undefined') {
+      const savedId = localStorage.getItem('selectedOrganizationId')
+      if (savedId) {
+        return savedId
+      }
+    }
+    
+    throw new Error('No organization selected. Please select an organization first.')
   }
 
   // Fetch all monitors

@@ -13,6 +13,7 @@ import adminQueueRoutes from './routes/adminQueue';
 import organizationRoutes from './routes/organizations';
 import monitorRoutes from './routes/monitors';
 import invitationRoutes from './routes/invitations';
+import reportRoutes from './routes/reports';
 import { swaggerSpec } from './config/swagger';
 import { scheduleDailyReconciliation } from './services/queue';
 import './config/passport';
@@ -65,6 +66,7 @@ app.use('/api/v1/admin/queue', adminQueueRoutes);
 app.use('/api/v1/organizations', organizationRoutes);
 app.use('/api/v1', monitorRoutes);
 app.use('/api/v1', invitationRoutes);
+app.use('/api/v1', reportRoutes);
 
 /**
  * @swagger

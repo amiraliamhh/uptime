@@ -125,7 +125,10 @@ watch(organizations, async (newOrgs) => {
 // Select organization
 const selectOrganization = async (orgId: string) => {
   await fetchOrganization(orgId)
-  localStorage.setItem('selectedOrganizationId', orgId)
+  // fetchOrganization already saves to localStorage, but ensure it's saved here too
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('selectedOrganizationId', orgId)
+  }
   showOrgDropdown.value = false
   
   // Refresh the page to update all data with the new organization context

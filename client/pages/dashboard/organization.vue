@@ -381,9 +381,24 @@ const loadOrganization = async () => {
       return
     }
 
-    // Get the first organization (or you could implement organization selection)
-    const firstOrg = orgsResult.data.organizations[0]
-    await fetchOrganization(firstOrg.id)
+    // Try to load from currentOrganization, then localStorage, then use first organization
+    let orgToLoad = null
+    if (currentOrganization.value?.id) {
+      orgToLoad = orgsResult.data.organizations.find((o: any) => o.id === currentOrganization.value.id)
+    }
+    
+    if (!orgToLoad && typeof window !== 'undefined') {
+      const savedOrgId = localStorage.getItem('selectedOrganizationId')
+      if (savedOrgId) {
+        orgToLoad = orgsResult.data.organizations.find((o: any) => o.id === savedOrgId)
+      }
+    }
+    
+    if (!orgToLoad) {
+      orgToLoad = orgsResult.data.organizations[0]
+    }
+    
+    await fetchOrganization(orgToLoad.id)
     
     // Load members
     await loadMembers()

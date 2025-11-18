@@ -43,6 +43,10 @@ export const useOrganizations = () => {
       })
 
       currentOrganization.value = response.organization
+      // Save to localStorage whenever organization is fetched
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('selectedOrganizationId', id)
+      }
       return { success: true, data: response }
     } catch (err: any) {
       error.value = err.data?.error || err.message || 'Failed to fetch organization'
@@ -50,6 +54,24 @@ export const useOrganizations = () => {
     } finally {
       loading.value = false
     }
+  }
+
+  // Helper function to get organization ID with localStorage fallback
+  const getOrganizationId = (): string | null => {
+    // First try currentOrganization
+    if (currentOrganization.value?.id) {
+      return currentOrganization.value.id
+    }
+    
+    // Fallback to localStorage
+    if (typeof window !== 'undefined') {
+      const savedId = localStorage.getItem('selectedOrganizationId')
+      if (savedId) {
+        return savedId
+      }
+    }
+    
+    return null
   }
 
   const updateOrganization = async (id: string, data: { name?: string; description?: string }) => {
@@ -166,7 +188,8 @@ export const useOrganizations = () => {
     updateOrganization,
     fetchMembers,
     addMember,
-    removeMember
+    removeMember,
+    getOrganizationId
   }
 }
 

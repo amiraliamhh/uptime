@@ -116,12 +116,6 @@
                     URL
                   </th>
                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Uptime
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Response Time
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -129,7 +123,7 @@
               <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 <!-- Loading State -->
                 <tr v-if="monitorsLoading">
-                  <td colspan="6" class="px-6 py-12 text-center">
+                  <td colspan="4" class="px-6 py-12 text-center">
                     <div class="flex flex-col items-center">
                       <svg class="animate-spin h-10 w-10 text-indigo-600 dark:text-indigo-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -142,7 +136,7 @@
 
                 <!-- Empty State -->
                 <tr v-else-if="filteredMonitors.length === 0 && !searchQuery">
-                  <td colspan="6" class="px-6 py-12 text-center">
+                  <td colspan="4" class="px-6 py-12 text-center">
                     <div class="flex flex-col items-center">
                       <div class="bg-gray-100 dark:bg-gray-700 w-16 h-16 rounded-full flex items-center justify-center mb-4">
                         <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,7 +157,7 @@
 
                 <!-- No Search Results -->
                 <tr v-else-if="filteredMonitors.length === 0 && searchQuery">
-                  <td colspan="6" class="px-6 py-12 text-center">
+                  <td colspan="4" class="px-6 py-12 text-center">
                     <div class="flex flex-col items-center">
                       <svg class="w-12 h-12 text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -200,12 +194,6 @@
                   </td>
                   <td class="px-6 py-4">
                     <div class="text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">{{ monitor.url }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900 dark:text-white font-medium">{{ getUptimePercentage(monitor) }}%</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900 dark:text-white">{{ getAverageResponseTime(monitor) }}ms</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm" @click.stop>
                     <div class="flex items-center space-x-3">
