@@ -178,6 +178,35 @@ export const useOrganizations = () => {
     }
   }
 
+  const createOrganization = async (data: { name: string; description?: string }) => {
+    if (!token.value) return { success: false, error: 'Not authenticated' }
+
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await $fetch(`${config.public.apiBaseUrl}/api/v1/organizations`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token.value}`
+        },
+        body: data
+      })
+
+      // Add to organizations list
+      if (response.organization) {
+        organizations.value.push(response.organization)
+      }
+
+      return { success: true, data: response, organization: response.organization }
+    } catch (err: any) {
+      error.value = err.data?.error || err.message || 'Failed to create organization'
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     organizations: readonly(organizations),
     currentOrganization: readonly(currentOrganization),
@@ -189,6 +218,7 @@ export const useOrganizations = () => {
     fetchMembers,
     addMember,
     removeMember,
+    createOrganization,
     getOrganizationId
   }
 }

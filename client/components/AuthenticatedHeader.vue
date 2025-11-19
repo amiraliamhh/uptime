@@ -60,6 +60,18 @@
                   </svg>
                 </button>
               </div>
+              <!-- Add New Organization Button -->
+              <div class="border-t border-gray-200 dark:border-gray-700 px-2 py-2">
+                <button
+                  @click="showCreateOrgModal = true; showOrgDropdown = false"
+                  class="w-full flex items-center justify-center space-x-2 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <span>Add new organization</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -78,16 +90,89 @@
         </div>
       </div>
     </nav>
+
+    <!-- Create Organization Modal -->
+    <div v-if="showCreateOrgModal" class="fixed inset-0 z-50 overflow-y-auto" @click.self="closeCreateOrgModal">
+      <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75" @click="closeCreateOrgModal"></div>
+
+        <!-- Modal panel -->
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
+                  Create New Organization
+                </h3>
+                <form @submit.prevent="handleCreateOrganization" class="space-y-4">
+                  <div>
+                    <label for="orgName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Organization Name *
+                    </label>
+                    <input
+                      id="orgName"
+                      v-model="createOrgForm.name"
+                      type="text"
+                      required
+                      placeholder="Enter organization name"
+                      class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label for="orgDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      id="orgDescription"
+                      v-model="createOrgForm.description"
+                      rows="3"
+                      placeholder="Enter organization description (optional)"
+                      class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    ></textarea>
+                  </div>
+                  <div v-if="createOrgError" class="text-sm text-red-600 dark:text-red-400">
+                    {{ createOrgError }}
+                  </div>
+                  <div class="flex items-center justify-end space-x-3 pt-4">
+                    <button
+                      type="button"
+                      @click="closeCreateOrgModal"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      :disabled="createOrgLoading"
+                      class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 dark:bg-indigo-500 rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {{ createOrgLoading ? 'Creating...' : 'Create' }}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </header>
 </template>
 
 <script lang="ts" setup>
 const { isDark } = useDarkMode()
 const { user } = useAuth()
-const { organizations, fetchOrganizations, fetchOrganization, currentOrganization } = useOrganizations()
+const { organizations, fetchOrganizations, fetchOrganization, createOrganization, currentOrganization } = useOrganizations()
 
 const showOrgDropdown = ref(false)
+const showCreateOrgModal = ref(false)
 const selectedOrganization = computed(() => currentOrganization.value)
+
+// Create organization form
+const createOrgForm = ref({ name: '', description: '' })
+const createOrgLoading = ref(false)
+const createOrgError = ref<string | null>(null)
 
 // Load organizations on mount
 onMounted(async () => {
@@ -156,5 +241,50 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
+
+// Create organization
+const handleCreateOrganization = async () => {
+  if (!createOrgForm.value.name.trim()) {
+    createOrgError.value = 'Organization name is required'
+    return
+  }
+
+  createOrgError.value = null
+  createOrgLoading.value = true
+
+  try {
+    const result = await createOrganization({
+      name: createOrgForm.value.name.trim(),
+      description: createOrgForm.value.description.trim() || undefined
+    })
+
+    if (result.success && result.organization) {
+      // Close modal and reset form
+      closeCreateOrgModal()
+      
+      // Select the newly created organization
+      await fetchOrganization(result.organization.id)
+      
+      // Refresh organizations list
+      await fetchOrganizations()
+      
+      // Refresh the page to update all data
+      await navigateTo(useRoute().path)
+    } else {
+      createOrgError.value = result.error || 'Failed to create organization'
+    }
+  } catch (err: any) {
+    createOrgError.value = err.message || 'Failed to create organization'
+  } finally {
+    createOrgLoading.value = false
+  }
+}
+
+// Close create organization modal
+const closeCreateOrgModal = () => {
+  showCreateOrgModal.value = false
+  createOrgForm.value = { name: '', description: '' }
+  createOrgError.value = null
+}
 </script>
 

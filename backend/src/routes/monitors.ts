@@ -276,6 +276,33 @@ router.post('/organizations/:organizationId/monitors', authenticateToken, async 
       return res.status(403).json({ error: 'You are not a member of this organization' });
     }
 
+    // Get organization to check monitors limit
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: {
+        id: true,
+        monitorsLimit: true,
+        _count: {
+          select: {
+            monitors: true
+          }
+        }
+      }
+    });
+
+    if (!organization) {
+      return res.status(404).json({ error: 'Organization not found' });
+    }
+
+    // Check if organization has reached monitors limit
+    // Use default limit of 10 if monitorsLimit is not set (for existing organizations)
+    const limit = organization.monitorsLimit ?? 10;
+    if (organization._count.monitors >= limit) {
+      return res.status(403).json({ 
+        error: `Organization has reached the monitor limit of ${limit}. Cannot create more monitors.` 
+      });
+    }
+
     // Create monitor
     const monitor = await prisma.monitor.create({
       data: {

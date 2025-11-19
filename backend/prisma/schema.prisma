@@ -43,11 +43,12 @@ model User {
 
 // Organization model
 model Organization {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String?
+  monitorsLimit Int       @default(10) // Maximum number of monitors allowed
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // Relations
   members     OrganizationMember[]

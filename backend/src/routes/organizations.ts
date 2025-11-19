@@ -638,7 +638,12 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => 
 router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { name, description, monitorsLimit } = req.body;
+
+    // Prevent users from updating monitorsLimit
+    if (monitorsLimit !== undefined) {
+      return res.status(403).json({ error: 'monitorsLimit cannot be updated by users' });
+    }
 
     // Check if user is an admin of the organization
     const membership = await prisma.organizationMember.findFirst({
@@ -662,7 +667,7 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => 
       return res.status(404).json({ error: 'Organization not found' });
     }
 
-    // Update organization
+    // Update organization (only name and description are allowed)
     const updatedOrganization = await prisma.organization.update({
       where: { id },
       data: {
