@@ -1,6 +1,7 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
+import { limits } from '../config/limits';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -49,6 +50,14 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
         }
       },
       include: {
+        createdBy: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            avatar: true
+          }
+        },
         members: {
           include: {
             user: {
@@ -60,11 +69,37 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
               }
             }
           }
+        },
+        _count: {
+          select: {
+            monitors: true
+          }
         }
       }
     });
 
-    res.json({ organizations });
+    // Add limit information to each organization
+    const organizationsWithLimits = organizations.map(org => ({
+      ...org,
+      monitorLimit: limits.maxMonitorsPerOrganization,
+      monitorsRemaining: Math.max(0, limits.maxMonitorsPerOrganization - org._count.monitors)
+    }));
+
+    // Get user's created organizations count for limit info
+    const userCreatedOrgsCount = await prisma.organization.count({
+      where: {
+        createdById: req.user!.id
+      }
+    });
+
+    res.json({ 
+      organizations: organizationsWithLimits,
+      limits: {
+        maxOrganizationsPerUser: limits.maxOrganizationsPerUser,
+        organizationsRemaining: Math.max(0, limits.maxOrganizationsPerUser - userCreatedOrgsCount),
+        maxMonitorsPerOrganization: limits.maxMonitorsPerOrganization
+      }
+    });
   } catch (error) {
     console.error('Get organizations error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -128,12 +163,26 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ error: 'Organization name is required' });
     }
 
+    // Check if user has reached the organization limit
+    const userOrganizationsCount = await prisma.organization.count({
+      where: {
+        createdById: req.user!.id
+      }
+    });
+
+    if (userOrganizationsCount >= limits.maxOrganizationsPerUser) {
+      return res.status(400).json({ 
+        error: `You have reached the maximum limit of ${limits.maxOrganizationsPerUser} organizations per user` 
+      });
+    }
+
     const result = await prisma.$transaction(async (tx) => {
       // Create organization
       const organization = await tx.organization.create({
         data: {
           name,
-          description
+          description,
+          createdById: req.user!.id
         }
       });
 

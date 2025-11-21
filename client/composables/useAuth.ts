@@ -5,6 +5,11 @@ export const useAuth = () => {
     sameSite: 'lax'
   })
   const user = useState('user', () => null as any)
+  const limits = useState('limits', () => null as {
+    maxOrganizationsPerUser: number
+    organizationsRemaining: number
+    maxMonitorsPerOrganization: number
+  } | null)
 
   const signup = async (data: { email: string; password: string; name?: string }) => {
     try {
@@ -16,6 +21,7 @@ export const useAuth = () => {
       if (response.token) {
         token.value = response.token
         user.value = response.user
+        limits.value = response.limits || null
       }
 
       return { success: true, data: response }
@@ -37,6 +43,7 @@ export const useAuth = () => {
       if (response.token) {
         token.value = response.token
         user.value = response.user
+        limits.value = response.limits || null
       }
 
       return { success: true, data: response }
@@ -67,6 +74,7 @@ export const useAuth = () => {
   const logout = () => {
     token.value = null
     user.value = null
+    limits.value = null
   }
 
   const setToken = (newToken: string | null) => {
@@ -84,6 +92,7 @@ export const useAuth = () => {
       })
 
       user.value = response.user
+      limits.value = response.limits || null
       return { success: true, data: response }
     } catch (error: any) {
       // Log out on any profile request failure
@@ -113,6 +122,22 @@ export const useAuth = () => {
     }
   }
 
+  const verifyEmail = async (token: string) => {
+    try {
+      const response = await $fetch(`${config.public.apiBaseUrl}/api/v1/auth/verify-email`, {
+        method: 'POST',
+        body: { token }
+      })
+
+      return { success: true, data: response }
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.data?.error || error.message || 'Failed to verify email' 
+      }
+    }
+  }
+
   const isAuthenticated = computed(() => !!token.value)
 
   return {
@@ -123,9 +148,11 @@ export const useAuth = () => {
     setToken,
     fetchProfile,
     changePassword,
+    verifyEmail,
     isAuthenticated,
     user: readonly(user),
-    token: readonly(token)
+    token: readonly(token),
+    limits: readonly(limits)
   }
 }
 

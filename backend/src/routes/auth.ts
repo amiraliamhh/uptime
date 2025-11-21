@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { hashPassword, comparePassword, generateToken, generateResetToken } from '../utils/auth';
 import { sendPasswordResetEmail, sendVerificationEmail } from '../utils/email';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
+import { limits } from '../config/limits';
 
 const router: express.Router = express.Router();
 const prisma = new PrismaClient();
@@ -69,13 +70,20 @@ router.post('/signup', async (req, res) => {
     // Hash password
     const hashedPassword = await hashPassword(password);
 
+    // Generate verification token
+    const verificationToken = generateResetToken();
+    const verificationExpires = new Date();
+    verificationExpires.setHours(verificationExpires.getHours() + 24); // 24 hours expiration
+
     // Create user (no default organization)
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         name,
-        provider: 'local'
+        provider: 'local',
+        verificationToken,
+        verificationExpires
       },
       select: {
         id: true,
@@ -88,17 +96,29 @@ router.post('/signup', async (req, res) => {
       }
     });
 
+    // Send verification email (non-blocking)
+    sendVerificationEmail(email, name || 'User', verificationToken).catch((error) => {
+      console.error('Failed to send verification email:', error);
+      // Don't fail the signup if email fails
+    });
+
     // Generate token
     const token = generateToken({
       userId: user.id,
       email: user.email
     });
 
+    // New user has 0 organizations created
     res.status(201).json({
       message: 'User created successfully',
       user: {
         ...user,
         hasOrganization: false
+      },
+      limits: {
+        maxOrganizationsPerUser: limits.maxOrganizationsPerUser,
+        organizationsRemaining: limits.maxOrganizationsPerUser,
+        maxMonitorsPerOrganization: limits.maxMonitorsPerOrganization
       },
       token
     });
@@ -169,6 +189,20 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    // Check if user is associated with at least one organization
+    const organizationCount = await prisma.organizationMember.count({
+      where: { userId: user.id }
+    });
+
+    const hasOrganization = organizationCount > 0;
+
+    // Get user's created organizations count for limit info
+    const userCreatedOrgsCount = await prisma.organization.count({
+      where: {
+        createdById: user.id
+      }
+    });
+
     // Generate token
     const token = generateToken({
       userId: user.id,
@@ -185,7 +219,13 @@ router.post('/login', async (req, res) => {
         provider: user.provider,
         isVerified: user.isVerified,
         roles: user.roles || [],
+        hasOrganization,
         createdAt: user.createdAt
+      },
+      limits: {
+        maxOrganizationsPerUser: limits.maxOrganizationsPerUser,
+        organizationsRemaining: Math.max(0, limits.maxOrganizationsPerUser - userCreatedOrgsCount),
+        maxMonitorsPerOrganization: limits.maxMonitorsPerOrganization
       },
       token
     });
@@ -355,6 +395,92 @@ router.post('/reset-password', async (req, res) => {
 
 /**
  * @swagger
+ * /api/v1/auth/verify-email:
+ *   post:
+ *     summary: Verify user email address
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: Email verification token
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Email verified successfully"
+ *       400:
+ *         description: Bad request - validation error or invalid/expired token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post('/verify-email', async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ error: 'Verification token is required' });
+    }
+
+    // Find user with valid verification token
+    const user = await prisma.user.findFirst({
+      where: {
+        verificationToken: token,
+        verificationExpires: {
+          gt: new Date()
+        }
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired verification token' });
+    }
+
+    // Check if already verified
+    if (user.isVerified) {
+      return res.status(400).json({ error: 'Email is already verified' });
+    }
+
+    // Update user - mark as verified and clear token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isVerified: true,
+        verificationToken: null,
+        verificationExpires: null
+      }
+    });
+
+    res.json({ message: 'Email verified successfully' });
+  } catch (error) {
+    console.error('Verify email error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
  * /api/v1/auth/profile:
  *   get:
  *     summary: Get user profile
@@ -397,6 +523,18 @@ router.post('/reset-password', async (req, res) => {
  *                     updatedAt:
  *                       type: string
  *                       format: date-time
+ *                 limits:
+ *                   type: object
+ *                   properties:
+ *                     maxOrganizationsPerUser:
+ *                       type: integer
+ *                       description: Maximum number of organizations a user can create
+ *                     organizationsRemaining:
+ *                       type: integer
+ *                       description: Number of organizations the user can still create
+ *                     maxMonitorsPerOrganization:
+ *                       type: integer
+ *                       description: Maximum number of monitors per organization
  *       401:
  *         description: Unauthorized - invalid or missing token
  *         content:
@@ -444,10 +582,22 @@ router.get('/profile', authenticateToken, async (req: AuthenticatedRequest, res)
 
     const hasOrganization = organizationCount > 0;
 
+    // Get user's created organizations count for limit info
+    const userCreatedOrgsCount = await prisma.organization.count({
+      where: {
+        createdById: req.user!.id
+      }
+    });
+
     res.json({ 
       user: {
         ...user,
         hasOrganization
+      },
+      limits: {
+        maxOrganizationsPerUser: limits.maxOrganizationsPerUser,
+        organizationsRemaining: Math.max(0, limits.maxOrganizationsPerUser - userCreatedOrgsCount),
+        maxMonitorsPerOrganization: limits.maxMonitorsPerOrganization
       }
     });
   } catch (error) {

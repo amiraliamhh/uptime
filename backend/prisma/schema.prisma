@@ -28,6 +28,8 @@ model User {
   provider      String    @default("local") // "local" or "google"
   googleId      String?   @unique
   isVerified    Boolean   @default(false)
+  verificationToken String?
+  verificationExpires DateTime?
   resetToken    String?
   resetExpires  DateTime?
   roles         UserRole[] // System roles (admin, etc.). Empty array means default "client" role
@@ -37,6 +39,7 @@ model User {
   // Relations
   organizationMembers  OrganizationMember[]
   sentInvitations      Invitation[]        @relation("InvitedBy")
+  createdOrganizations Organization[]      @relation("OrganizationCreator")
 
   @@map("users")
 }
@@ -47,15 +50,17 @@ model Organization {
   name          String
   description   String?
   monitorsLimit Int       @default(10) // Maximum number of monitors allowed
+  createdById   String    @db.ObjectId // User who created the organization
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  members     OrganizationMember[]
-  monitors    Monitor[]
-  logs        Log[]
+  createdBy     User      @relation("OrganizationCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  members       OrganizationMember[]
+  monitors      Monitor[]
+  logs          Log[]
   dailySummaries DailySummary[]
-  invitations Invitation[]
+  invitations   Invitation[]
 
   @@map("organizations")
 }

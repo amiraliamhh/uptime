@@ -42,41 +42,19 @@ passport.use(
           return done(null, user);
         }
 
-        // Create new user and default organization
-        const result = await prisma.$transaction(async (tx) => {
-          // Create user
-          const newUser = await tx.user.create({
-            data: {
-              email: profile.emails?.[0]?.value!,
-              name: profile.displayName,
-              avatar: profile.photos?.[0]?.value,
-              provider: 'google',
-              googleId: profile.id,
-              isVerified: true
-            }
-          });
-
-          // Create default organization
-          const organization = await tx.organization.create({
-            data: {
-              name: 'default',
-              description: 'Default organization'
-            }
-          });
-
-          // Add user as admin of the organization
-          await tx.organizationMember.create({
-            data: {
-              organizationId: organization.id,
-              userId: newUser.id,
-              role: 'admin'
-            }
-          });
-
-          return newUser;
+        // Create new user (no default organization per new requirements)
+        const newUser = await prisma.user.create({
+          data: {
+            email: profile.emails?.[0]?.value!,
+            name: profile.displayName,
+            avatar: profile.photos?.[0]?.value,
+            provider: 'google',
+            googleId: profile.id,
+            isVerified: true
+          }
         });
 
-        user = result;
+        user = newUser;
 
         return done(null, user);
       } catch (error) {

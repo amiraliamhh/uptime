@@ -1,4 +1,6 @@
 import nodemailer from 'nodemailer';
+import fs from 'fs';
+import path from 'path';
 
 const transporter = nodemailer.createTransport({
   host: process.env.MAIL_SMTP_SERVER,
@@ -35,19 +37,30 @@ export async function sendPasswordResetEmail(email: string, resetToken: string) 
   }
 }
 
-export async function sendVerificationEmail(email: string, verificationToken: string) {
+export async function sendVerificationEmail(email: string, name: string, verificationToken: string) {
   const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+  const year = new Date().getFullYear();
+  
+  // Read the email template
+  // __dirname in compiled code will be dist/src/utils/, so go up to backend root then into src/templates
+  // Also try process.cwd() as fallback for different execution contexts
+  let templatePath = path.resolve(__dirname, '../../src/templates/email-verification.html');
+  if (!fs.existsSync(templatePath)) {
+    // Fallback: try from process.cwd() (if running from backend directory)
+    templatePath = path.join(process.cwd(), 'src/templates/email-verification.html');
+  }
+  let htmlTemplate = fs.readFileSync(templatePath, 'utf-8');
+  
+  // Replace template variables
+  htmlTemplate = htmlTemplate.replace(/\{\{name\}\}/g, name || 'User');
+  htmlTemplate = htmlTemplate.replace(/\{\{verificationUrl\}\}/g, verificationUrl);
+  htmlTemplate = htmlTemplate.replace(/\{\{year\}\}/g, year.toString());
   
   const mailOptions = {
     from: process.env.MAIL_SMTP_USERNAME,
     to: email,
     subject: 'Verify Your Email',
-    html: `
-      <h2>Verify Your Email</h2>
-      <p>Please click the link below to verify your email address:</p>
-      <a href="${verificationUrl}">Verify Email</a>
-      <p>If you didn't create an account, please ignore this email.</p>
-    `
+    html: htmlTemplate
   };
 
   try {

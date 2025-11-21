@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 import { scheduleMonitor, removeMonitor, MonitorJobData } from '../services/queue';
 import logger, { monitorLogger } from '../config/logger';
+import { limits } from '../config/limits';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -276,30 +277,16 @@ router.post('/organizations/:organizationId/monitors', authenticateToken, async 
       return res.status(403).json({ error: 'You are not a member of this organization' });
     }
 
-    // Get organization to check monitors limit
-    const organization = await prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: {
-        id: true,
-        monitorsLimit: true,
-        _count: {
-          select: {
-            monitors: true
-          }
-        }
+    // Check if organization has reached the monitor limit
+    const monitorCount = await prisma.monitor.count({
+      where: {
+        organizationId
       }
     });
 
-    if (!organization) {
-      return res.status(404).json({ error: 'Organization not found' });
-    }
-
-    // Check if organization has reached monitors limit
-    // Use default limit of 10 if monitorsLimit is not set (for existing organizations)
-    const limit = organization.monitorsLimit ?? 10;
-    if (organization._count.monitors >= limit) {
-      return res.status(403).json({ 
-        error: `Organization has reached the monitor limit of ${limit}. Cannot create more monitors.` 
+    if (monitorCount >= limits.maxMonitorsPerOrganization) {
+      return res.status(400).json({ 
+        error: `This organization has reached the maximum limit of ${limits.maxMonitorsPerOrganization} monitors` 
       });
     }
 
